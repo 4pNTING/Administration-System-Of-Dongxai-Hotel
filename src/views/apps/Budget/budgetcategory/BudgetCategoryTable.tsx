@@ -36,6 +36,7 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
+import Chip from '@mui/material/Chip'
 
 // Type Imports
 import type { ThemeColor } from '@core/types'
@@ -67,7 +68,7 @@ type InvoiceTypeWithAction = InvoiceType & {
   action?: string
 }
 
-type InvoiceStatusObj = {
+type CategoryStatusObj = {
   [key: string]: {
     icon: string
     color: ThemeColor
@@ -117,13 +118,26 @@ const DebouncedInput = ({
 }
 
 // Vars
-const invoiceStatusObj: InvoiceStatusObj = {
+const CategoryStatusObj: CategoryStatusObj = {
   Sent: { color: 'secondary', icon: 'tabler-send-2' },
   Paid: { color: 'success', icon: 'tabler-check' },
   Draft: { color: 'primary', icon: 'tabler-mail' },
   'Partial Payment': { color: 'warning', icon: 'tabler-chart-pie-2' },
   'Past Due': { color: 'error', icon: 'tabler-alert-circle' },
   Downloaded: { color: 'info', icon: 'tabler-arrow-down' }
+}
+
+const productStatusObj: productStatusType = {
+  Scheduled: { title: 'Scheduled', color: 'warning' },
+  Published: { title: 'Publish', color: 'success' },
+  Inactive: { title: 'Inactive', color: 'error' }
+}
+
+type productStatusType = {
+  [key: string]: {
+    title: string
+    color: ThemeColor
+  }
 }
 
 // Column Definitions
@@ -133,91 +147,97 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
   // States
   const [status, setStatus] = useState<InvoiceType['invoiceStatus']>('')
   const [rowSelection, setRowSelection] = useState({})
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data, setData] = useState(...[invoiceData])
+  const [data, setData] = useState(invoiceData)
   const [globalFilter, setGlobalFilter] = useState('')
 
   // Hooks
   const { lang: locale } = useParams()
 
-  const columns = useMemo<ColumnDef<InvoiceTypeWithAction, any>[]>(
-    () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
-          />
-        )
-      },
-      columnHelper.accessor('id', {
-        header: 'ລຳດັບ',
-        cell: ({ row }) => (
-          <Typography
-            component={Link}
-            href={getLocalizedUrl(`apps/invoice/preview/${row.original.id}`, locale as Locale)}
-            color='primary'
-          >{`#${row.original.id}`}</Typography>
-        )
-      }),
-      columnHelper.accessor('total', {
-        header: 'Total',
-        cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
-      }),
-      columnHelper.accessor('issuedDate', {
-        header: 'Issued Date',
-        cell: ({ row }) => <Typography>{row.original.issuedDate}</Typography>
-      }),
-      columnHelper.accessor('invoiceStatus', {
-        header: 'Status',
-        cell: ({ row }) => (
-          <Tooltip
-            title={
-              <div>
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  {row.original.invoiceStatus}
-                </Typography>
-                <br />
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  Balance:
-                </Typography>{' '}
-                {row.original.balance}
-                <br />
-                <Typography variant='body2' component='span' className='text-inherit'>
-                  Due Date:
-                </Typography>{' '}
-                {row.original.dueDate}
-              </div>
-            }
-          >
-            <CustomAvatar skin='light' color={invoiceStatusObj[row.original.invoiceStatus].color} size={28}>
-              <i className={classnames('bs-4 is-4', invoiceStatusObj[row.original.invoiceStatus].icon)} />
-            </CustomAvatar>
-          </Tooltip>
-        )
-      }),
-      columnHelper.accessor('action', {
-        header: 'Action',
-        cell: ({ row }) => (
-          <div className='flex items-center'>
-         
+  const columns = useMemo<ColumnDef<InvoiceTypeWithAction, any>[]>(() => [
+    // Uncomment the following block if you want to enable row selection
+    // {
+    //   id: 'select',
+    //   header: ({ table }) => (
+    //     <Checkbox
+    //       {...{
+    //         checked: table.getIsAllRowsSelected(),
+    //         indeterminate: table.getIsSomeRowsSelected(),
+    //         onChange: table.getToggleAllRowsSelectedHandler()
+    //       }}
+    //     />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Checkbox
+    //       {...{
+    //         checked: row.getIsSelected(),
+    //         disabled: !row.getCanSelect(),
+    //         indeterminate: row.getIsSomeSelected(),
+    //         onChange: row.getToggleSelectedHandler()
+    //       }}
+    //     />
+    //   )
+    // },
+    columnHelper.accessor('id', {
+      header: 'ລຳດັບ',
+      cell: ({ row }) => (
+        <Typography
+          component={Link}
+          href={getLocalizedUrl(`apps/invoice/preview/${row.original.id}`, locale as Locale)}
+          color='primary'
+        >{`#${row.original.id}`}</Typography>
+      )
+    }),
+    columnHelper.accessor('total', {
+      header: 'ລະຫັດລາຍການ',
+      cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
+    }),
+    columnHelper.accessor('total', {
+      header: 'ຊື່ລາຍການ',
+      cell: ({ row }) => (
+        <div style={{ minWidth: '200px' }}> {/* Adjust the minWidth value as needed */}
+          <Typography>{`$${row.original.total}`}</Typography>
+        </div>
+      )
+    }),
+    columnHelper.accessor('issuedDate', {
+      header: 'ວັນ ເດືອນ ປີ',
+      cell: ({ row }) => <Typography>{row.original.issuedDate}</Typography>
+    }),
+    columnHelper.accessor('invoiceStatus', {
+      header: 'ສະຖານະ',
+      cell: ({ row }) => (
+        <Tooltip
+          title={
+            <div>
+              <Typography variant='body2' component='span' className='text-inherit'>
+                {row.original.invoiceStatus}
+              </Typography>
+              <br />
+              <Typography variant='body2' component='span' className='text-inherit'>
+                Balance:
+              </Typography>{' '}
+              {row.original.balance}
+              <br />
+              <Typography variant='body2' component='span' className='text-inherit'>
+                Due Date:
+              </Typography>{' '}
+              {row.original.dueDate}
+            </div>
+          }
+        >
+          <CustomAvatar skin='light' color={CategoryStatusObj[row.original.invoiceStatus].color} size={28}>
+            <i className={classnames('bs-4 is-4', CategoryStatusObj[row.original.invoiceStatus].icon)} />
+          </CustomAvatar>
+        </Tooltip>
+      )
+    }),
+    columnHelper.accessor('action', {
+      header: 'Action',
+      cell: ({ row }) => (
+        <div className='flex items-center'>
           <OptionMenu
             iconButtonProps={{ size: 'medium' }}
-            iconClassName='text-textSecondary'
+            iconClassName='tabler-edit text-textSecondary'
             options={[
               {
                 text: 'Download',
@@ -239,7 +259,7 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
               }
             ]}
           />
-           <IconButton>
+          <IconButton>
             <Link
               href={getLocalizedUrl(`apps/invoice/preview/${row.original.id}`, locale as Locale)}
               className='flex'
@@ -251,13 +271,10 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
             <i className='tabler-trash text-textSecondary' />
           </IconButton>
         </div>
-        ),
-        enableSorting: false
-      })
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
+      ),
+      enableSorting: false
+    })
+  ], [data, locale])
 
   const table = useReactTable({
     data: data as InvoiceType[],
@@ -271,11 +288,10 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
     },
     initialState: {
       pagination: {
-        pageSize: 6
+        pageSize: 10
       }
     },
-    enableRowSelection: true, //enable row selection for all rows
-    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
+    enableRowSelection: true, // enable row selection for all rows
     globalFilterFn: fuzzyFilter,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
@@ -291,7 +307,6 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
   useEffect(() => {
     const filteredData = invoiceData?.filter(invoice => {
       if (status && invoice.invoiceStatus.toLowerCase().replace(/\s+/g, '-') !== status) return false
-
       return true
     })
 
@@ -311,6 +326,7 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
               className='is-[70px]'
             >
               <MenuItem value='6'>6</MenuItem>
+              <MenuItem value='10'>10</MenuItem>
               <MenuItem value='24'>24</MenuItem>
               <MenuItem value='50'>50</MenuItem>
             </CustomTextField>
@@ -322,7 +338,7 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
             href={getLocalizedUrl('apps/invoice/add', locale as Locale)}
             className='is-full sm:is-auto'
           >
-            Create Invoice
+            ເພິ່ມລາຍການໃໝ່
           </Button>
         </div>
         <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4'>
@@ -351,59 +367,61 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
         </div>
       </CardContent>
       <div className='overflow-x-auto'>
-        <table className={tableStyles.table}>
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <>
-                        <div
-                          className={classnames({
-                            'flex items-center': header.column.getIsSorted(),
-                            'cursor-pointer select-none': header.column.getCanSort()
-                          })}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                          {{
-                            asc: <i className='tabler-chevron-up text-xl' />,
-                            desc: <i className='tabler-chevron-down text-xl' />
-                          }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
-                        </div>
-                      </>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          {table.getFilteredRowModel().rows.length === 0 ? (
-            <tbody>
-              <tr>
-                <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                  No data available
+      <table className={`${tableStyles.table} w-full`}>
+  <thead>
+    {table.getHeaderGroups().map(headerGroup => (
+      <tr key={headerGroup.id}>
+        {headerGroup.headers.map(header => (
+          <th key={header.id} style={{ paddingRight: '80px' }}> {/* Adjust the padding as needed */}
+            {header.isPlaceholder ? null : (
+              <>
+                <div
+                  className={classnames({
+                    'flex items-center': header.column.getIsSorted(),
+                    'cursor-pointer select-none': header.column.getCanSort()
+                  })}
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                  {{
+                    asc: <i className='tabler-chevron-up text-xl' />,
+                    desc: <i className='tabler-chevron-down text-xl' />
+                  }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                </div>
+              </>
+            )}
+          </th>
+        ))}
+      </tr>
+    ))}
+  </thead>
+  {table.getFilteredRowModel().rows.length === 0 ? (
+    <tbody>
+      <tr>
+        <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+          No data available
+        </td>
+      </tr>
+    </tbody>
+  ) : (
+    <tbody>
+      {table
+        .getRowModel()
+        .rows.slice(0, table.getState().pagination.pageSize)
+        .map(row => {
+          return (
+            <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id} style={{ paddingRight: '30px' }}> {/* Adjust the padding as needed */}
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
-              </tr>
-            </tbody>
-          ) : (
-            <tbody>
-              {table
-                .getRowModel()
-                .rows.slice(0, table.getState().pagination.pageSize)
-                .map(row => {
-                  return (
-                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                      {row.getVisibleCells().map(cell => (
-                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                      ))}
-                    </tr>
-                  )
-                })}
-            </tbody>
-          )}
-        </table>
+              ))}
+            </tr>
+          )
+        })}
+    </tbody>
+  )}
+</table>
       </div>
       <TablePagination
         component={() => <TablePaginationComponent table={table} />}

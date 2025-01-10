@@ -12,7 +12,7 @@ import ProductOrganize from '@views/apps/ecommerce/products/add/ProductOrganize'
 
 const eCommerceProductsAdd = () => {
   return (
-    <Grid container spacing={6}>
+    <Grid container  spacing={6} >
       <Grid item xs={12}>
         <ProductAddHeader />
       </Grid>
