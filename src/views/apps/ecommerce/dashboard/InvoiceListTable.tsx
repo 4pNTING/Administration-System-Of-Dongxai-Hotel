@@ -165,7 +165,7 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
         )
       },
       columnHelper.accessor('id', {
-        header: 'ລຳດັບ',
+        header: '#',
         cell: ({ row }) => (
           <Typography
             component={Link}
@@ -173,14 +173,6 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
             color='primary'
           >{`#${row.original.id}`}</Typography>
         )
-      }),
-      columnHelper.accessor('total', {
-        header: 'Total',
-        cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
-      }),
-      columnHelper.accessor('issuedDate', {
-        header: 'Issued Date',
-        cell: ({ row }) => <Typography>{row.original.issuedDate}</Typography>
       }),
       columnHelper.accessor('invoiceStatus', {
         header: 'Status',
@@ -210,47 +202,54 @@ const InvoiceListTable = ({ invoiceData }: { invoiceData: InvoiceType[] }) => {
           </Tooltip>
         )
       }),
+      columnHelper.accessor('total', {
+        header: 'Total',
+        cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
+      }),
+      columnHelper.accessor('issuedDate', {
+        header: 'Issued Date',
+        cell: ({ row }) => <Typography>{row.original.issuedDate}</Typography>
+      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-         
-          <OptionMenu
-            iconButtonProps={{ size: 'medium' }}
-            iconClassName='text-textSecondary'
-            options={[
-              {
-                text: 'Download',
-                icon: 'tabler-download',
-                menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-              },
-              {
-                text: 'Edit',
-                icon: 'tabler-pencil',
-                href: getLocalizedUrl(`apps/invoice/edit/${row.original.id}`, locale as Locale),
-                linkProps: {
-                  className: 'flex items-center is-full plb-2 pli-4 gap-2 text-textSecondary'
+            <IconButton>
+              <i className='tabler-trash text-textSecondary' />
+            </IconButton>
+            <IconButton>
+              <Link
+                href={getLocalizedUrl(`apps/invoice/preview/${row.original.id}`, locale as Locale)}
+                className='flex'
+              >
+                <i className='tabler-eye text-textSecondary' />
+              </Link>
+            </IconButton>
+            <OptionMenu
+              iconButtonProps={{ size: 'medium' }}
+              iconClassName='text-textSecondary'
+              options={[
+                {
+                  text: 'Download',
+                  icon: 'tabler-download',
+                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+                },
+                {
+                  text: 'Edit',
+                  icon: 'tabler-pencil',
+                  href: getLocalizedUrl(`apps/invoice/edit/${row.original.id}`, locale as Locale),
+                  linkProps: {
+                    className: 'flex items-center is-full plb-2 pli-4 gap-2 text-textSecondary'
+                  }
+                },
+                {
+                  text: 'Duplicate',
+                  icon: 'tabler-copy',
+                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 }
-              },
-              {
-                text: 'Duplicate',
-                icon: 'tabler-copy',
-                menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-              }
-            ]}
-          />
-           <IconButton>
-            <Link
-              href={getLocalizedUrl(`apps/invoice/preview/${row.original.id}`, locale as Locale)}
-              className='flex'
-            >
-              <i className='tabler-eye text-textSecondary' />
-            </Link>
-          </IconButton>
-          <IconButton>
-            <i className='tabler-trash text-textSecondary' />
-          </IconButton>
-        </div>
+              ]}
+            />
+          </div>
         ),
         enableSorting: false
       })

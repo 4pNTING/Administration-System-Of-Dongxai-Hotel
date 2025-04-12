@@ -393,7 +393,7 @@ const Customizer = ({ breakpoint = 'lg', dir = 'ltr', disableDirection = false }
                   <div className='flex flex-col items-start gap-0.5'>
                     <div
                       className={classnames(styles.itemWrapper, {
-                        [styles.active]: settings.contentWidth === 'compact'
+                        [styles.active]: settings.contentWidth === 'wide'
                       })}
                       onClick={() =>
                         updateSettings({

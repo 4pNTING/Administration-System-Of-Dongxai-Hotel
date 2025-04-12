@@ -26,7 +26,6 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 // Style Imports
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
-import { Typography } from '@mui/material'
 
 // Menu Data Imports
 // import menuData from '@/data/navigation/verticalMenuData'
@@ -93,44 +92,11 @@ const VerticalMenu = ({ dictionary, scrollMenu }: Props) => {
           <MenuItem href={`/${locale}/dashboards/ecommerce`}>{dictionary['navigation'].eCommerce}</MenuItem>
           <MenuItem href={`/${locale}/dashboards/academy`}>{dictionary['navigation'].academy}</MenuItem>
           <MenuItem href={`/${locale}/dashboards/logistics`}>{dictionary['navigation'].logistics}</MenuItem>
-          <MenuItem href={`/${locale}/dashboards/logistics`}>{dictionary['navigation'].logistics}</MenuItem>
+          <MenuItem href={`/${locale}/dashboards/customers`}>{dictionary['navigation'].customers}</MenuItem>
+
+          
         </SubMenu>
-
-  {/* PPPPPPPPPPP */}
-        <SubMenu label="ງົບປະມານ" icon={<i className='tabler-shopping-cart' />}>
-        <MenuItem href={`/${locale}/apps/Budget/budgetcategory`}>
-  <Typography>ກຸ່ມງົບປະມານ</Typography>
-</MenuItem>
-<MenuItem href={`/${locale}/apps/Budget/budget`}>
-  <Typography>ລະຫັດງົບປະມານ</Typography>
-</MenuItem>
-        <MenuItem href={`/${locale}/apps/Budget/budgetgroup`}>
-  <Typography>ປະເພດຂອງງົບປະມານ</Typography>
-</MenuItem>
-          </SubMenu>
-
-
-
-
-
-
-        <SubMenu label={dictionary['navigation'].frontPages} icon={<i className='tabler-files' />}>
-          <MenuItem href='/front-pages/landing-page' target='_blank'>
-            {dictionary['navigation'].landing}
-          </MenuItem>
-          <MenuItem href='/front-pages/pricing' target='_blank'>
-            {dictionary['navigation'].pricing}
-          </MenuItem>
-          <MenuItem href='/front-pages/payment' target='_blank'>
-            {dictionary['navigation'].payment}
-          </MenuItem>
-          <MenuItem href='/front-pages/checkout' target='_blank'>
-            {dictionary['navigation'].checkout}
-          </MenuItem>
-          <MenuItem href='/front-pages/help-center' target='_blank'>
-            {dictionary['navigation'].helpCenter}
-          </MenuItem>
-        </SubMenu>
+       
         <MenuSection label={dictionary['navigation'].appsPages}>
           <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='tabler-shopping-cart' />}>
             <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>

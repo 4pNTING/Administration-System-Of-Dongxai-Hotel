@@ -1,4 +1,4 @@
-import LogisticsDashboard from '../../apps/logistics/dashboard/page'
+import LogisticsDashboard from '../../apps/logistics/dashboardsss/page'
 
 const DashboardLogistics = () => {
   return <LogisticsDashboard />

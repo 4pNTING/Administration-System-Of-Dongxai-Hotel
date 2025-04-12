@@ -58,7 +58,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/views/customers/CustomerList.jsx"  ],
   "exclude": [
     "node_modules"
   ]
