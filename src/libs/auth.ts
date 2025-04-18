@@ -1,4 +1,4 @@
-// Third-party Imports
+// src/libs/auth.ts
 import CredentialProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
@@ -11,57 +11,54 @@ const prisma = new PrismaClient()
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
 
-  // ** Configure one or more authentication providers
-  // ** Please refer to https://next-auth.js.org/configuration/options#providers for more `providers` options
   providers: [
     CredentialProvider({
-      // ** The name to display on the sign in form (e.g. 'Sign in with...')
-      // ** For more details on Credentials Provider, visit https://next-auth.js.org/providers/credentials
       name: 'Credentials',
       type: 'credentials',
-
-      /*
-       * As we are using our own Sign-in page, we do not need to change
-       * username or password attributes manually in following credentials object.
-       */
       credentials: {},
       async authorize(credentials) {
-        /*
-         * You need to provide your own logic here that takes the credentials submitted and returns either
-         * an object representing a user or value that is false/null if the credentials are invalid.
-         * For e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-         * You can also use the `req` object to obtain additional parameters (i.e., the request IP address)
-         */
-        const { email, password } = credentials as { email: string; password: string }
+        const { userName, password } = credentials as { userName: string; password: string }
 
         try {
-          // ** Login API Call to match the user credentials and receive user data in response along with his role
-          const res = await fetch(`${process.env.API_URL}/login`, {
+          console.log("Authenticating user:", userName);
+          
+          const res = await fetch(`${process.env.API_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ userName, password })
           })
 
-          const data = await res.json()
-
-          if (res.status === 401) {
-            throw new Error(JSON.stringify(data))
+          if (!res.ok) {
+            const contentType = res.headers.get('content-type');
+            let errorMessage = 'Authentication failed';
+            
+            if (contentType?.includes('application/json')) {
+              const errorData = await res.json();
+              errorMessage = errorData.message || 'Invalid credentials';
+            }
+            
+            throw new Error(JSON.stringify({ message: [errorMessage] }));
           }
 
-          if (res.status === 200) {
-            /*
-             * Please unset all the sensitive information of the user either from API response or before returning
-             * user data below. Below return statement will set the user object in the token and the same is set in
-             * the session which will be accessible all over the app.
-             */
-            return data
-          }
+          const data = await res.json();
+          console.log("Login response:", data);
 
-          return null
+          // ข้อมูลที่จะส่งกลับเข้าสู่ NextAuth
+          return {
+            id: String(data.data.user?.id || data.data.id || '1'),
+            name: data.data.user?.userName || data.data.userName || userName,
+            email: `${userName}@example.com`, // สร้าง dummy email
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+            role: data.data.user?.role || 'user', // แก้เป็น user.role
+            userName: data.data.user?.userName || data.data.userName || userName,
+            roleId: data.data.user?.roleId || null
+          }
         } catch (e: any) {
-          throw new Error(e.message)
+          console.error("Login error:", e);
+          throw new Error(e.message);
         }
       }
     }),
@@ -70,58 +67,159 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string
     })
-
-    // ** ...add more providers here
   ],
 
-  // ** Please refer to https://next-auth.js.org/configuration/options#session for more `session` options
   session: {
-    /*
-     * Choose how you want to save the user session.
-     * The default is `jwt`, an encrypted JWT (JWE) stored in the session cookie.
-     * If you use an `adapter` however, NextAuth default it to `database` instead.
-     * You can still force a JWT session by explicitly defining `jwt`.
-     * When using `database`, the session cookie will only contain a `sessionToken` value,
-     * which is used to look up the session in the database.
-     * If you use a custom credentials provider, user accounts will not be persisted in a database by NextAuth.js (even if one is configured).
-     * The option to use JSON Web Tokens for session tokens must be enabled to use a custom credentials provider.
-     */
     strategy: 'jwt',
-
-    // ** Seconds - How long until an idle session expires and is no longer valid
-    maxAge: 30 * 24 * 60 * 60 // ** 30 days
+    maxAge: 24 * 60 * 60, // 1 day
   },
 
-  // ** Please refer to https://next-auth.js.org/configuration/options#pages for more `pages` options
   pages: {
-    signIn: '/login'
+    signIn: '/login',
+    error: '/auth/error',
+    signOut: '/auth/signout'
   },
 
-  // ** Please refer to https://next-auth.js.org/configuration/options#callbacks for more `callbacks` options
   callbacks: {
-    /*
-     * While using `jwt` as a strategy, `jwt()` callback will be called before
-     * the `session()` callback. So we have to add custom parameters in `token`
-     * via `jwt()` callback to make them accessible in the `session()` callback
-     */
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // เมื่อล็อกอินครั้งแรก
       if (user) {
-        /*
-         * For adding custom parameters to user in session, we first need to add those parameters
-         * in token which then will be available in the `session()` callback
-         */
-        token.name = user.name
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.role = user.role;
+        token.roleId = user.roleId;
+        token.userName = user.userName;
       }
 
-      return token
+      // ตรวจสอบว่า token ใกล้หมดอายุหรือไม่ (ถ้าต้องการทำ refresh token)
+      const tokenExpiry = token.exp as number;
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (tokenExpiry && currentTime > tokenExpiry - 300) {
+        try {
+          const refreshedTokens = await refreshAccessToken(token.refreshToken as string);
+          if (refreshedTokens) {
+            token.accessToken = refreshedTokens.accessToken;
+            token.refreshToken = refreshedTokens.refreshToken;
+            token.exp = refreshedTokens.exp;
+          }
+        } catch (error) {
+          console.error("Error refreshing token:", error);
+          // ถ้าไม่สามารถ refresh ได้ ให้ทำเครื่องหมายว่า token หมดอายุ
+          token.error = "RefreshAccessTokenError";
+        }
+      }
+
+      return token;
     },
+    
     async session({ session, token }) {
       if (session.user) {
-        // ** Add custom params to user in session which are added in `jwt()` callback via `token` parameter
-        session.user.name = token.name
+        session.user.accessToken = token.accessToken as string;
+        session.user.refreshToken = token.refreshToken as string;
+        session.user.role = token.role as string;
+        session.user.userName = token.userName as string;
+        session.user.id = token.sub as string;
+        session.user.roleId = token.roleId as number | null;
       }
 
-      return session
+      return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      // ถ้า URL เป็น URL ภายใน ให้นำทางไปยัง URL นั้น
+      if (url.startsWith(baseUrl)) return url;
+      // อนุญาตให้นำทางกลับไปยัง origin URL
+      if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+      // ถ้าไม่ใช่ URL ภายใน ให้นำทางไปยังหน้าหลัก
+      return baseUrl;
     }
+  },
+
+  events: {
+    async signOut({ token }) {
+      // สามารถเพิ่มโค้ดเพื่อเรียก API logout ของ backend เพื่อยกเลิก refresh token
+      if (token?.refreshToken) {
+        try {
+          await fetch(`${process.env.API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refreshToken: token.refreshToken })
+          });
+        } catch (error) {
+          console.error("Error during logout:", error);
+        }
+      }
+    }
+  }
+}
+
+// ฟังก์ชันสำหรับ refresh access token (ใช้ถ้าต้องการ)
+async function refreshAccessToken(refreshToken: string) {
+  try {
+    const response = await fetch(`${process.env.API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refreshToken })
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh token");
+    }
+
+    const data = await response.json();
+    
+    return {
+      accessToken: data.data.accessToken,
+      refreshToken: data.data.refreshToken,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 // 1 hour
+    };
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return null;
+  }
+}
+
+// ประกาศ type สำหรับ session ที่มี custom properties
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      // image?: string | null;
+      accessToken?: string;
+      refreshToken?: string;
+      role?: string;
+      roleId?: number | null;
+      userName?: string;
+    }
+  }
+
+  interface User {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    // image?: string | null;
+    accessToken?: string;
+    refreshToken?: string;
+    role?: string;
+    userName?: string;
+    roleId?: number | null;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    refreshToken?: string;
+    role?: string;
+    roleId?: number | null;
+    userName?: string;
+    exp?: number;
+    error?: string;
   }
 }

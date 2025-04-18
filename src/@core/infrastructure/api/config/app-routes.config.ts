@@ -8,8 +8,8 @@ const createRoutes = (baseUrl: string) => ({
     DETAIL: (id: string | number) => `${baseUrl}/detail/${id}`,
   });
   
-  const APP_ROUTES = {
-    DASHBOARD_ROUTE: '/dashboards',
+  export const APP_ROUTES = {
+    DASHBOARD_ROUTE: '/dashboards/crm',
     CUSTOMER_ROUTE: createRoutes('/customers'),
     ROOM_ROUTE: createRoutes('/rooms'),
     ROOM_TYPE_ROUTE: createRoutes('/room-types'),

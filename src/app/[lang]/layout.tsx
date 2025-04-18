@@ -9,6 +9,7 @@ import type { ChildrenType } from '@core/types'
 import type { Locale } from '@configs/i18n'
 
 // Component Imports
+import { NextAuthProvider } from '../../contexts/nextAuthProvider' // Add this import
 
 // HOC Imports
 import TranslationWrapper from '@/hocs/TranslationWrapper'
@@ -36,7 +37,9 @@ const RootLayout = ({ children, params }: ChildrenType & { params: { lang: Local
   return (
     <TranslationWrapper headersList={headersList} lang={params.lang}>
       <html id='__next' lang={params.lang} dir={direction}>
-        <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
+        <body className='flex is-full min-bs-full flex-auto flex-col'>
+          <NextAuthProvider>{children}</NextAuthProvider>
+        </body>
       </html>
     </TranslationWrapper>
   )

@@ -22,13 +22,13 @@ const CustomerDashboard = () => {
         // console.log('Customer data:', items)
       })
       .catch(error => {
-  
+
       })
   }, [fetchCustomers])
 
   // แสดงข้อมูลใน console log อีกครั้งหลังจาก state อัปเดต
   useEffect(() => {
- 
+
   }, [items])
 
   return (

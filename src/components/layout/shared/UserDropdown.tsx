@@ -33,6 +33,12 @@ import { useSettings } from '@core/hooks/useSettings'
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
 
+
+import { ROLE_LABELS, ROLE_COLORS, RoleType } from '@/@core/constants/role.constant';
+import { Chip } from '@mui/material'
+
+
+
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
   width: 8,
@@ -55,7 +61,7 @@ const UserDropdown = () => {
   const { data: session } = useSession()
   const { settings } = useSettings()
   const { lang: locale } = useParams()
-
+  console.log('USER SESSION:', session?.user);
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
   }
@@ -74,13 +80,33 @@ const UserDropdown = () => {
 
   const handleUserLogout = async () => {
     try {
-      // Sign out from the app
-      await signOut({ callbackUrl: process.env.NEXT_PUBLIC_APP_URL })
-    } catch (error) {
-      console.error(error)
+      // ถ้ามี refresh token ให้เรียก API เพื่อเพิกถอน token ก่อน
+      if (session?.user?.refreshToken) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.user.accessToken}`
+            },
+            body: JSON.stringify({ refreshToken: session.user.refreshToken })
+          });
+          console.log("Refresh token revoked successfully");
+        } catch (error) {
+          console.error("Error revoking refresh token:", error);
+        }
+      }
 
-      // Show above error in a toast like following
-      // toastService.error((err as Error).message)
+      // Sign out from the app
+      // ระบุ callbackUrl เพื่อนำทางกลับไปยังหน้า login หลังจาก logout สำเร็จ
+      await signOut({
+        callbackUrl: getLocalizedUrl('/login', locale as Locale)
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+
+      // สามารถเพิ่มการแสดง toast หรือแจ้งเตือนผู้ใช้ได้ที่นี่
+      // toastService.error("Failed to logout. Please try again.");
     }
   }
 
@@ -125,7 +151,15 @@ const UserDropdown = () => {
                       <Typography className='font-medium' color='text.primary'>
                         {session?.user?.name || ''}
                       </Typography>
-                      <Typography variant='caption'>{session?.user?.email || ''}</Typography>
+                      {/* <Typography variant='caption'>{session?.user?.email || ''}</Typography> */}
+                    
+                      <Chip
+                        label={ROLE_LABELS[(session?.user?.role || '').toLowerCase() as RoleType] || 'User'}
+                        color={ROLE_COLORS[(session?.user?.role || '').toLowerCase() as RoleType] || 'default'}
+                        size="small"
+                        className="mt-1"
+                      />
+                      
                     </div>
                   </div>
                   <Divider className='mlb-1' />

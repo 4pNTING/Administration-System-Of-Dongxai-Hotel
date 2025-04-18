@@ -23,7 +23,7 @@ import Alert from '@mui/material/Alert'
 import { signIn } from 'next-auth/react'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { email, object, minLength, string, pipe, nonEmpty } from 'valibot'
+import { object, minLength, string, pipe, nonEmpty } from 'valibot'
 import type { SubmitHandler } from 'react-hook-form'
 import type { InferInput } from 'valibot'
 import classnames from 'classnames'
@@ -45,7 +45,7 @@ import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
-
+import { APP_ROUTES } from '@core/infrastructure/api/config/app-routes.config';
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
   zIndex: 2,
@@ -76,8 +76,9 @@ type ErrorType = {
 
 type FormData = InferInput<typeof schema>
 
+// เปลี่ยน schema จาก email เป็น userName
 const schema = object({
-  email: pipe(string(), minLength(1, 'This field is required'), email('Email is invalid')),
+  userName: pipe(string(), minLength(1, 'This field is required')),
   password: pipe(
     string(),
     nonEmpty('This field is required'),
@@ -114,8 +115,8 @@ const Login = ({ mode }: { mode: SystemMode }) => {
   } = useForm<FormData>({
     resolver: valibotResolver(schema),
     defaultValues: {
-      email: 'admin@vuexy.com',
-      password: 'admin'
+      userName: '',
+      password: ''
     }
   })
 
@@ -127,27 +128,46 @@ const Login = ({ mode }: { mode: SystemMode }) => {
     borderedDarkIllustration
   )
 
+  // ฟังก์ชัน handleClickShowPassword
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
+  // ฟังก์ชัน onSubmit ใช้ NextAuth
+
+const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
+  try {
+    // ตัด whitespace ทั้งหมดที่อยู่ด้านหน้าและด้านหลัง userName
+    const trimmedUserName = data.userName.trim();
+    
+    console.log("Attempting login with:", { userName: trimmedUserName, password: data.password });
+    
     const res = await signIn('credentials', {
-      email: data.email,
+      // ส่ง userName ที่ trim แล้ว
+      userName: trimmedUserName,
       password: data.password,
       redirect: false
-    })
+    });
 
-    if (res && res.ok && res.error === null) {
-      // Vars
-      const redirectURL = searchParams.get('redirectTo') ?? '/'
+    console.log("Login response:", res);
 
-      router.replace(getLocalizedUrl(redirectURL, locale as Locale))
+    if (res && res.ok && !res.error) {
+      // Successful login
+      const redirectURL = searchParams.get('redirect') || APP_ROUTES.DASHBOARD_ROUTE;
+      router.replace(getLocalizedUrl(redirectURL, locale as Locale));
     } else {
+      // Handle error
       if (res?.error) {
-        const error = JSON.parse(res.error)
-
-        setErrorState(error)
+        try {
+          const error = JSON.parse(res.error);
+          setErrorState(error);
+        } catch (parseError) {
+          setErrorState({ message: [res.error || 'Login failed'] });
+        }
       }
     }
+  } catch (error) {
+    console.error('Login error:', error);
+    setErrorState({ message: ['An unexpected error occurred'] });
+  }
   }
 
   return (
@@ -174,8 +194,8 @@ const Login = ({ mode }: { mode: SystemMode }) => {
           </div>
           <Alert icon={false} className='bg-[var(--mui-palette-primary-lightOpacity)]'>
             <Typography variant='body2' color='primary'>
-              Email: <span className='font-medium'>admin@vuexy.com</span> / Pass:{' '}
-              <span className='font-medium'>admin</span>
+              Username: <span className='font-medium'>somchai5</span> / Pass:{' '}
+              <span className='font-medium'>12345678</span>
             </Typography>
           </Alert>
           <form
@@ -186,7 +206,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
             className='flex flex-col gap-6'
           >
             <Controller
-              name='email'
+              name='userName'
               control={control}
               rules={{ required: true }}
               render={({ field }) => (
@@ -194,16 +214,15 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   {...field}
                   autoFocus
                   fullWidth
-                  type='email'
-                  label='Email'
-                  placeholder='Enter your email'
+                  label='Username'
+                  placeholder='Enter your username'
                   onChange={e => {
                     field.onChange(e.target.value)
                     errorState !== null && setErrorState(null)
                   }}
-                  {...((errors.email || errorState !== null) && {
+                  {...((errors.userName || errorState !== null) && {
                     error: true,
-                    helperText: errors?.email?.message || errorState?.message[0]
+                    helperText: errors?.userName?.message || errorState?.message[0]
                   })}
                 />
               )}
