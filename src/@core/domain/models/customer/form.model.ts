@@ -1,12 +1,4 @@
-export interface CustomerQueryParams {
-  CustomerId?: number;
-  CustomerName?: string;
-  CustomerGender?: string;
-  getType?: 'one' | 'many';
-  [key: string]: any;
-}
-
-export interface CreateCustomerDTO {
+export interface CustomerFormData {
   CustomerName: string;
   CustomerGender: string;
   CustomerTel: number;
@@ -14,7 +6,8 @@ export interface CreateCustomerDTO {
   CustomerPostcode: number;
 }
 
-export interface UpdateCustomerDTO {
+// เพิ่ม CustomerInput เพื่อให้สามารถ import ได้
+export interface CustomerInput {
   CustomerName?: string;
   CustomerGender?: string;
   CustomerTel?: number;

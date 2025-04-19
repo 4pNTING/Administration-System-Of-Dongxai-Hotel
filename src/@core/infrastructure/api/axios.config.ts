@@ -1,12 +1,15 @@
+// src/app/infrastructure/api/axios.config.ts
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { getSession, signOut } from 'next-auth/react';
+import { useLoadingStore } from '@core/domain/store/useLoading.store';
+import { useErrorStore } from '@core/domain/store/useError.store';
 
 // API configuration
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/v1';
 const TIMEOUT = 30000;
 
 // Create Axios instance
-const axiosInstance: AxiosInstance = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: API_URL,
   timeout: TIMEOUT,
   headers: {
@@ -16,8 +19,11 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 // Response interceptor for API calls
-axiosInstance.interceptors.response.use(
+api.interceptors.response.use(
   (response: AxiosResponse) => {
+    // ตั้งค่า loading state เป็น false เมื่อได้รับการตอบกลับ
+    useLoadingStore.getState().setLoading(false);
+    
     // ถ้า response มีฟิลด์ data เป็น object ให้ส่งค่านั้นกลับไป
     if (response.data && typeof response.data === 'object') {
       return response;
@@ -26,6 +32,16 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    // ตั้งค่า loading state เป็น false เมื่อเกิดข้อผิดพลาด
+    useLoadingStore.getState().setLoading(false);
+    
+    // แสดงข้อความข้อผิดพลาด (ถ้ามี)
+    if (error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+      useErrorStore.getState().setError(error.response.data.message as string);
+    } else if (error.message) {
+      useErrorStore.getState().setError(error.message);
+    }
+    
     const originalRequest: any = error.config;
     
     // ถ้าเกิด 401 Unauthorized และไม่ใช่การพยายาม refresh token
@@ -61,7 +77,7 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
           
           // ส่งคำขอเดิมอีกครั้ง
-          return axiosInstance(originalRequest);
+          return api(originalRequest);
         }
       } catch (refreshError) {
         // ถ้า refresh token ไม่สำเร็จ ให้ logout
@@ -76,8 +92,11 @@ axiosInstance.interceptors.response.use(
 );
 
 // Request interceptor for API calls
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   async (config) => {
+    // ตั้งค่า loading state เป็น true เมื่อส่งคำขอ
+    useLoadingStore.getState().setLoading(true);
+    
     // ดึง token จาก NextAuth session
     const session = await getSession();
     const accessToken = session?.user?.accessToken;
@@ -90,8 +109,10 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
+    // ตั้งค่า loading state เป็น false เมื่อเกิดข้อผิดพลาด
+    useLoadingStore.getState().setLoading(false);
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export { api };

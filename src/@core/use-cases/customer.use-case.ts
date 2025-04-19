@@ -1,41 +1,48 @@
-// ไฟล์: src/core/use-cases/customer.use-case.ts
-import { CustomerEntity } from '../domain/entities/customer.entity';
-import { ICustomerRepository } from '../interface/repositories/customer.port';
-import { CustomerService, customerService } from '../services/customer.service';
-import {CustomerQueryParams, CreateCustomerDTO,UpdateCustomerDTO } from '@core/domain/models/customer.model'
+// src/app/application/use-cases/customer-use-case.ts
+import { Customer } from "@core/domain/models/customer/list.model";
+import { CustomerRepositoryPort } from "../interface/repositoriesport/customer.port";
+import { CustomerFormData } from "@core/domain/models/customer/form.model";
 
 export class CustomerUseCase {
-  private customerService: CustomerService;
-  
-  constructor(customerRepository: ICustomerRepository) {
-    this.customerService = new CustomerService(customerRepository);
-  }
+    constructor(private readonly repository: CustomerRepositoryPort) { }
 
-  async getAllCustomers(params: CustomerQueryParams = {}): Promise<CustomerEntity[]> {
-    return this.customerService.getMany(params);
-  }
+    async executeQuery(): Promise<Customer[]> {
+        try {
+            return await this.repository.getMany();
+        } catch (error) {
+            throw error;
+        }
+    }
 
-  async getCustomerById(id: number): Promise<CustomerEntity | null> {
-    return this.customerService.getById(id);
-  }
+    async executeGetOne(id: number): Promise<Customer> {
+        try {
+            return await this.repository.getOne(id);
+        } catch (error) {
+            throw error;
+        }
+    }
 
-  async createCustomer(data: CreateCustomerDTO): Promise<CustomerEntity> {
-    return this.customerService.create(data);
-  }
+    async executeCreate(data: CustomerFormData): Promise<Customer> {
+        try {
+            return await this.repository.create(data);
+        } catch (error) {
+            throw error;
+        }
+    }
 
-  async updateCustomer(id: number, data: UpdateCustomerDTO): Promise<boolean> {
-    return this.customerService.update(id, data);
-  }
+    async executeUpdate(id: number, data: Partial<CustomerFormData>): Promise<Customer> {
+        try {
+            return await this.repository.update(id, data);
+        } catch (error) {
+            throw error;
+        }
+    }
 
-  async deleteCustomer(id: number): Promise<boolean> {
-    return this.customerService.delete(id);
-  }
-
-  async searchCustomers(name: string): Promise<CustomerEntity[]> {
-    return this.customerService.searchByName(name);
-  }
-
-  async getTopCustomers(limit: number = 10): Promise<CustomerEntity[]> {
-    return this.customerService.getTopCustomers(limit);
-  }
+    async executeDelete(id: number): Promise<void> {
+        try {
+            await this.repository.delete(id);
+        } catch (error) {
+            throw error;
+        }
+    }
 }

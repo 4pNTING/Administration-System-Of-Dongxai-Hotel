@@ -1,4 +1,5 @@
-import { QueryOptions } from "../../domain/models/common/api.model";
+// src/app/infrastructure/queries/customer.query.ts
+import { QueryOptions } from "@core/domain/models/common/api.model";
 
 export const CUSTOMER_QUERY = {
     LIST: {

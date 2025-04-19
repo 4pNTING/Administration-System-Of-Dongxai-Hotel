@@ -190,7 +190,7 @@ declare module "next-auth" {
       id: string;
       name?: string | null;
       email?: string | null;
-      // image?: string | null;
+       image?: string | null;
       accessToken?: string;
       refreshToken?: string;
       role?: string;
@@ -203,7 +203,7 @@ declare module "next-auth" {
     id: string;
     name?: string | null;
     email?: string | null;
-    // image?: string | null;
+     image?: string | null;
     accessToken?: string;
     refreshToken?: string;
     role?: string;

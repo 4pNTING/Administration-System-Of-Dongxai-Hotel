@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { CustomerEntity } from '@/core/domain/entities/customer.entity';
 import { customerService, CustomerService } from '../../core/services/customer.service';
-import { CustomerQueryParams,CreateCustomerDTO,UpdateCustomerDTO } from '@/@core/domain/models/customer.model';
+import { CustomerQueryParams,CreateCustomerDTO,UpdateCustomerDTO } from '@/@core/domain/models/customer/form.model.ts';
 
 interface CustomerState {
   items: CustomerEntity[];

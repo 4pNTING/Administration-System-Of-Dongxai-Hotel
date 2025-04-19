@@ -1,5 +1,5 @@
 // Next Imports
-import { Public_Sans } from 'next/font/google'
+import { Noto_Sans_Lao } from 'next/font/google'
 
 // MUI Imports
 import type { Theme } from '@mui/material/styles'
@@ -16,7 +16,11 @@ import shadows from './shadows'
 import customShadows from './customShadows'
 import typography from './typography'
 
-const public_sans = Public_Sans({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800', '900'] })
+// ใช้ Noto Sans Lao แทน Public Sans
+const noto_sans_lao = Noto_Sans_Lao({
+  subsets: ['lao', 'latin'],
+  weight: ['400', '500', '600', '700'], // ปรับตามน้ำหนักที่มีใน Noto Sans Lao
+})
 
 const theme = (settings: Settings, mode: SystemMode, direction: Theme['direction']): Theme => {
   return {
@@ -35,7 +39,7 @@ const theme = (settings: Settings, mode: SystemMode, direction: Theme['direction
       }
     },
     shadows: shadows(mode),
-    typography: typography(public_sans.style.fontFamily),
+    typography: typography(noto_sans_lao.style.fontFamily),
     customShadows: customShadows(mode),
     mainColorChannels: {
       light: '47 43 61',

@@ -9,7 +9,7 @@ export type Mode = 'system' | 'light' | 'dark'
 
 export type SystemMode = 'light' | 'dark'
 
-export type Direction = 'ltr' | 'rtl'
+export type Direction = 'ltr' | 'rtl' | 'lao'
 
 export type LayoutComponentWidth = 'compact' | 'wide'
 
