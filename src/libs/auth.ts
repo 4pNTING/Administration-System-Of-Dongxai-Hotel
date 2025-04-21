@@ -21,8 +21,10 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log("Authenticating user:", userName);
+          console.log("Backend API URL:", process.env.NEXT_PUBLIC_BACKEND_API_URL);
           
-          const res = await fetch(`${process.env.API_URL}/auth/login`, {
+          // ใช้ NEXT_PUBLIC_BACKEND_API_URL แทน API_URL เพื่อเชื่อมต่อกับ backend โดยตรง
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -30,12 +32,15 @@ export const authOptions: NextAuthOptions = {
             body: JSON.stringify({ userName, password })
           })
 
+          console.log("Login response status:", res.status);
+
           if (!res.ok) {
             const contentType = res.headers.get('content-type');
             let errorMessage = 'Authentication failed';
             
             if (contentType?.includes('application/json')) {
               const errorData = await res.json();
+              console.log("Login error data:", errorData);
               errorMessage = errorData.message || 'Invalid credentials';
             }
             
@@ -140,7 +145,8 @@ export const authOptions: NextAuthOptions = {
       // สามารถเพิ่มโค้ดเพื่อเรียก API logout ของ backend เพื่อยกเลิก refresh token
       if (token?.refreshToken) {
         try {
-          await fetch(`${process.env.API_URL}/auth/logout`, {
+          // ใช้ NEXT_PUBLIC_BACKEND_API_URL แทน API_URL
+          await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/logout`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -158,7 +164,8 @@ export const authOptions: NextAuthOptions = {
 // ฟังก์ชันสำหรับ refresh access token (ใช้ถ้าต้องการ)
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const response = await fetch(`${process.env.API_URL}/auth/refresh`, {
+    // ใช้ NEXT_PUBLIC_BACKEND_API_URL แทน API_URL
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

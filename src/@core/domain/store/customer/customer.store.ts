@@ -42,16 +42,17 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     fetchItems: async () => {
         const { setLoading } = useLoadingStore.getState();
         const { setError } = useErrorStore.getState();
-        
+        console.log("Fetching customers...");
         try {
             setLoading(true);
             set({ isLoading: true });
-            
+            console.log("Making API call...");
             const data = await customerService.getMany();
             set({ items: data, isLoading: false });
-            
+            console.log("API response:", data);
             setLoading(false);
         } catch (error: any) {
+            console.error('Error fetching customers (full):', error);
             set({ isLoading: false });
             setLoading(false);
             setError(error.message || 'Failed to fetch customers');

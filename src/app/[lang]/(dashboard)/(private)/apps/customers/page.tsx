@@ -43,6 +43,7 @@ const CustomerPage = () => {
 
   useEffect(() => {
     if (items) {
+      console.log('Fetched items:', items)
       if (selectedGender === null) {
         setFilteredItems(items)
       } else {

@@ -22,6 +22,8 @@
     "orders": "Orders",
     "details": "Details",
     "customers": "Customers",
+    "roomstatus": "Room Status",
+    "room": "Room",
     "manageReviews": "Manage Reviews",
     "referrals": "Referrals",
     "settings": "Settings",

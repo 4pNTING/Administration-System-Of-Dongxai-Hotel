@@ -8,7 +8,7 @@ export interface CustomerFilterProps {
 export interface CustomerFormInputProps {
     visible: boolean;   // เปลี่ยนจาก visible เป็น open
     selectedItem?: Customer | null;
-    onClose: () => void;  // เปลี่ยนจาก onHide เป็น onClose
+    
 }
 
 export interface CustomerFormInputProps {

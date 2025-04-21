@@ -11,6 +11,7 @@ export class CustomerRepository implements CustomerRepositoryPort {
 
     async getMany(): Promise<Customer[]> {
         try {
+            
             const query = CUSTOMER_QUERY.LIST.createQuery();
             const response = await api.post<ApiResponse<Customer[]>>(this.URL.GET, query);
             return response.data.data;
