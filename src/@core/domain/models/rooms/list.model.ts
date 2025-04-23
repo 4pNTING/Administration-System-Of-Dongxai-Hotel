@@ -1,20 +1,17 @@
-export interface RoomType {
+// src/core/domain/models/rooms/list.model.ts
+export interface Room {
+  RoomId: number;
+  TypeId: number;
+  StatusId: number;
+  RoomPrice: number;
+  roomType?: {
     TypeId: number;
     TypeName: string;
-  }
-  
-  export interface RoomStatus {
+  };
+  roomStatus?: {
     StatusId: number;
     StatusName: string;
-  }
-  
-  export interface Room {
-    RoomId: number;
-    TypeId: number;
-    StatusId: number;
-    RoomPrice: number;
-    roomType?: RoomType;
-    roomStatus?: RoomStatus;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
-  }
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}

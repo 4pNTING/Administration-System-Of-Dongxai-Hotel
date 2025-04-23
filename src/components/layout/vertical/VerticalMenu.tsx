@@ -88,6 +88,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }: Props) => {
           suffix={<CustomChip label='5' size='small' color='error' round='true' />}
         >
           <MenuItem href={`/${locale}/dashboards/crm`}>{dictionary['navigation'].crm}</MenuItem>
+          <MenuItem href={`/${locale}/dashboards/booking`}>{dictionary['navigation'].booking}</MenuItem>
           <MenuItem href={`/${locale}/dashboards/analytics`}>{dictionary['navigation'].analytics}</MenuItem>
           <MenuItem href={`/${locale}/dashboards/ecommerce`}>{dictionary['navigation'].eCommerce}</MenuItem>
           <MenuItem href={`/${locale}/dashboards/academy`}>{dictionary['navigation'].academy}</MenuItem>
@@ -98,7 +99,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }: Props) => {
         </SubMenu>
        
         <MenuSection label={dictionary['navigation'].appsPages}>
-        <MenuItem href={`/${locale}/apps/rooms`}>{dictionary['navigation'].room}</MenuItem>
+        <MenuItem href={`/${locale}/apps/rooms`}>{dictionary['navigation'].rooms}</MenuItem>
         <MenuItem href={`/${locale}/apps/academy/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <MenuItem href={`/${locale}/apps/academy/my-courses`}>{dictionary['navigation'].myCourses}</MenuItem>
             <MenuItem href={`/${locale}/apps/academy/course-details`}>

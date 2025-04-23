@@ -12,10 +12,16 @@ export class RoomRepository implements RoomRepositoryPort {
 
   async getMany(): Promise<Room[]> {
     try {
+      console.log('🔍 Calling API with URL:', this.URL.GET);
       const query = ROOM_QUERY.LIST.createQuery();
+      console.log('📝 Query data:', query);
+  
       const response = await api.post<ApiResponse<Room[]>>(this.URL.GET, query);
+      console.log('📊 API Response:', response);
+  
       return response.data.data;
     } catch (error) {
+      console.error('❌ Error fetching data:', error);
       throw error;
     }
   }

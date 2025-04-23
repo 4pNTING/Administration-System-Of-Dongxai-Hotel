@@ -2,6 +2,7 @@
   "navigation": {
     "dashboards": "Tableaux de bord",
     "crm": "GRC",
+    "booking": "Réservation",
     "analytics": "Analytique",
     "eCommerce": "commerce électronique",
     "academy": "Académie",
@@ -37,7 +38,7 @@
     "edit": "Éditer",
     "user": "Utilisateur",
     "view": "Voir",
-    "room": "Room",
+    "rooms": "Room",
     "rolesPermissions": "Rôles et autorisations",
     "roles": "Les rôles",
     "permissions": "Autorisations",

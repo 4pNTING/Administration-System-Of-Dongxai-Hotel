@@ -5,19 +5,20 @@ import { useLoadingStore } from '@core/domain/store/useLoading.store';
 import { useErrorStore } from '@core/domain/store/useError.store';
 
 // API configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/v1';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:5000/v1';
 const TIMEOUT = 30000;
 
 // Create Axios instance
-const api: AxiosInstance = axios.create({
+const api = axios.create({
   baseURL: API_URL,
-  timeout: TIMEOUT,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
-    Accept: 'application/json',
+    'Accept': 'application/json'
   },
-});
 
+});
+console.log("API URL being used:", API_URL);
 // Response interceptor for API calls
 api.interceptors.response.use(
   (response: AxiosResponse) => {

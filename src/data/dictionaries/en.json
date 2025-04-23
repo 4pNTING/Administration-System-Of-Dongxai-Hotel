@@ -2,6 +2,7 @@
   "navigation": {
     "dashboards": "Dashboards",
     "crm": "CRM",
+    "booking": "Booking",
     "analytics": "Analytics",
     "eCommerce": "eCommerce",
     "academy": "Academy",
@@ -23,7 +24,7 @@
     "details": "Details",
     "customers": "Customers",
     "rooms": "Rooms",
-    "room": "Room",
+   
     "manageReviews": "Manage Reviews",
     "referrals": "Referrals",
     "settings": "Settings",

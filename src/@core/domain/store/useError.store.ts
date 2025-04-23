@@ -1,13 +1,14 @@
+// src/core/domain/store/useError.store.ts
 import { create } from 'zustand';
 
 interface ErrorState {
-    error: string | undefined;
-    setError: (message: string) => void;
-    clearError: () => void;
+  error: string | null;
+  setError: (error: string) => void;
+  clearError: () => void;
 }
 
 export const useErrorStore = create<ErrorState>((set) => ({
-    error: undefined,
-    setError: (message) => set({ error: message }),
-    clearError: () => set({ error: undefined }),
+  error: null,
+  setError: (error: string) => set({ error }),
+  clearError: () => set({ error: null }),
 }));
