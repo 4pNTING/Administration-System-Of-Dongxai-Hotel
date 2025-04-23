@@ -98,7 +98,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }: Props) => {
         </SubMenu>
        
         <MenuSection label={dictionary['navigation'].appsPages}>
-        <MenuItem href={`/${locale}/apps/roomstatus`}>{dictionary['navigation'].roomstatus}</MenuItem>
+        <MenuItem href={`/${locale}/apps/rooms`}>{dictionary['navigation'].room}</MenuItem>
         <MenuItem href={`/${locale}/apps/academy/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <MenuItem href={`/${locale}/apps/academy/my-courses`}>{dictionary['navigation'].myCourses}</MenuItem>
             <MenuItem href={`/${locale}/apps/academy/course-details`}>
