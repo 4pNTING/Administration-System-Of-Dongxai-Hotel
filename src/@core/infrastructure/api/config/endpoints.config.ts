@@ -8,16 +8,16 @@ const ENDPOINTS = {
     },
     CUSTOMER: {
         BASE_URL: '/customers' as const,
-        get GET() { return `${this.BASE_URL}/query` },  // ใช้สำหรับค้นหา
-        get CREATE() { return this.BASE_URL },  // แก้ไขให้เป็น /customers ตรงๆ
-        DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },  // เพิ่ม DETAIL
+        get GET() { return `${this.BASE_URL}/query` },
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
     },
     STAFF: {
         BASE_URL: '/staffs' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return this.BASE_URL },  // แก้ไขเป็น /staffs ตรงๆ
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -25,7 +25,7 @@ const ENDPOINTS = {
     ROOM: {
         BASE_URL: '/rooms' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return this.BASE_URL },  // แก้ไขเป็น /rooms ตรงๆ
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         get AVAILABLE() { return `${this.BASE_URL}/available` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
@@ -34,7 +34,15 @@ const ENDPOINTS = {
     ROOM_TYPE: {
         BASE_URL: '/room-types' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return this.BASE_URL },  // แก้ไขเป็น /room-types ตรงๆ
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
+        UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
+        DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
+    },
+    ROOM_STATUS: {
+        BASE_URL: '/room-statuses' as const,
+        get GET() { return `${this.BASE_URL}/query` },
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -42,7 +50,7 @@ const ENDPOINTS = {
     BOOKING: {
         BASE_URL: '/bookings' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return this.BASE_URL },  // แก้ไขเป็น /bookings ตรงๆ
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` },
@@ -53,7 +61,7 @@ const ENDPOINTS = {
     PAYMENT: {
         BASE_URL: '/payments' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return this.BASE_URL },  // แก้ไขเป็น /payments ตรงๆ
+        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         BY_BOOKING: function (bookingId: number) { return `${this.BASE_URL}/booking/${bookingId}` }
     },
@@ -64,15 +72,16 @@ const ENDPOINTS = {
         get OCCUPANCY() { return `${this.BASE_URL}/occupancy` },
         get BOOKINGS() { return `${this.BASE_URL}/bookings` }
     }
-  } as const;
-  
-  export const {
+} as const;
+
+export const {
     AUTH: AUTH_ENDPOINTS,
     CUSTOMER: CUSTOMER_ENDPOINTS,
     STAFF: STAFF_ENDPOINTS,
     ROOM: ROOM_ENDPOINTS,
     ROOM_TYPE: ROOM_TYPE_ENDPOINTS,
+    ROOM_STATUS: ROOM_STATUS_ENDPOINTS,
     BOOKING: BOOKING_ENDPOINTS,
     PAYMENT: PAYMENT_ENDPOINTS,
     DASHBOARD: DASHBOARD_ENDPOINTS
-  } = ENDPOINTS;
+} = ENDPOINTS;

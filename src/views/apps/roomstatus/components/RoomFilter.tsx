@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // MUI Imports
 import Box from '@mui/material/Box';
@@ -9,8 +9,8 @@ import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
-// Icon Imports
-import SearchIcon from '@mui/icons-material/Search';
+// Store Imports
+import { useRoomStatusStore } from '@core/domain/store/room-status.store';
 
 export interface RoomFilterProps {
     value: string;
@@ -20,24 +20,25 @@ export interface RoomFilterProps {
 }
 
 export const RoomFilter = ({ value, statusFilter, onFilterChange, onStatusFilterChange }: RoomFilterProps) => {
-    const statuses = [
-        { label: 'ทั้งหมด', value: '' },
-        { label: 'ว่าง', value: 'Available' },
-        { label: 'ไม่ว่าง', value: 'Occupied' },
-        { label: 'ซ่อมบำรุง', value: 'Maintenance' },
-    ];
+    // ใช้ store เพื่อดึงรายการสถานะห้องพัก
+    const { roomStatuses, fetchRoomStatuses } = useRoomStatusStore();
+    
+    // โหลดข้อมูลสถานะเมื่อคอมโพเนนต์ถูกโหลด
+    useEffect(() => {
+        fetchRoomStatuses();
+    }, [fetchRoomStatuses]);
 
     return (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
                 value={value}
                 onChange={(e) => onFilterChange(e.target.value)}
-                placeholder="ค้นหา"
+                placeholder="ຄົ້ນຫາ"
                 size="small"
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
+                            <i className="tabler-search text-lg" />
                         </InputAdornment>
                     ),
                 }}
@@ -45,16 +46,17 @@ export const RoomFilter = ({ value, statusFilter, onFilterChange, onStatusFilter
             />
             
             <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel id="status-filter-label">สถานะห้องพัก</InputLabel>
+                <InputLabel id="status-filter-label">ສະຖານະຫ້ອງພັກ</InputLabel>
                 <Select
                     labelId="status-filter-label"
                     value={statusFilter}
-                    label="สถานะห้องพัก"
+                    label="ສະຖານະຫ້ອງພັກ"
                     onChange={(e) => onStatusFilterChange(e.target.value)}
                 >
-                    {statuses.map((status) => (
-                        <MenuItem key={status.value} value={status.value}>
-                            {status.label}
+                    <MenuItem value="">ທັ້ງໝົດ</MenuItem>
+                    {roomStatuses.map((status) => (
+                        <MenuItem key={status.StatusId} value={status.StatusName}>
+                            {status.StatusName}
                         </MenuItem>
                     ))}
                 </Select>

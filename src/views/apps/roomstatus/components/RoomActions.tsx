@@ -1,70 +1,49 @@
-// src/views/apps/roomstatus/components/RoomActions.tsx
-'use client'
+import React from 'react'
 
-import Button from '@mui/material/Button'
+// MUI Imports
 import IconButton from '@mui/material/IconButton'
-import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
 
-// Store imports
-import { useRoomStore } from '@core/domain/store/rooms/room.store'
-import { useLoadingStore } from '@core/domain/store/useLoading.store'
-import { useErrorStore } from '@core/domain/store/useError.store'
+// Type Imports
+import { Room } from '@core/domain/models/rooms/list.model'
 
-interface RoomActionsProps {
-  onRefresh?: () => Promise<void>
+interface RoomActionButtonsProps {
+  room: Room
+  onEdit: (room: Room) => void
+  onDelete: (id: number) => Promise<void>
 }
 
-const RoomActions = ({ onRefresh }: RoomActionsProps) => {
-  const { setFormVisible, fetchItems } = useRoomStore()
-  const { setLoading } = useLoadingStore()
-  const { setError } = useErrorStore()
-
-  // ดูการเรียก API
-  const handleRefresh = async () => {
-    console.log('Refreshing room data via store.fetchItems()...')
-    try {
-      setLoading(true)
-      
-      if (onRefresh) {
-        await onRefresh()
-      } else {
-        await fetchItems()
-      }
-      
-      console.log('Room data refreshed successfully')
-    } catch (error: any) {
-      console.error('Failed to refresh room data:', error)
-      setError(error.message || 'Failed to refresh room data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAddRoom = () => {
-    setFormVisible(true)
-  }
-
+const RoomActionButtons = ({ room, onEdit, onDelete }: RoomActionButtonsProps) => {
   return (
-    <Box sx={{ display: 'flex', gap: 2 }}>
-      <Tooltip title="Refresh">
-        <IconButton color="primary" onClick={handleRefresh}>
-          <RefreshIcon />
+    <div className='flex items-center justify-center gap-2'>
+      <Tooltip title='ແກ້ໄຂ'>
+        <IconButton
+          color='primary'
+          onClick={() => onEdit(room)}
+          size='small'
+          // sx={{ 
+          //   bgcolor: 'rgba(58, 53, 260, 0.1)', 
+          //   '&:hover': { bgcolor: 'rgba(58, 53, 260, 0.2)' } 
+          // }}
+        >
+          <i className='tabler-edit text-lg' />
         </IconButton>
       </Tooltip>
-      
-      <Button 
-        variant="contained" 
-        color="primary" 
-        startIcon={<AddIcon />}
-        onClick={handleAddRoom}
-      >
-        Add New Room
-      </Button>
-    </Box>
+      <Tooltip title='ລົບ'>
+        <IconButton
+          // color='error'
+          onClick={() => onDelete(room.RoomId)}
+          size='small'
+          // sx={{ 
+          //   bgcolor: 'rgba(234, 84, 85, 0.1)', 
+          //   '&:hover': { bgcolor: 'rgba(234, 84, 85, 0.2)' } 
+          // }}
+        >
+          <i className='tabler-trash text-lg' />
+        </IconButton>
+      </Tooltip>
+    </div>
   )
 }
 
-export default RoomActions
+export default RoomActionButtons

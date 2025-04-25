@@ -1,196 +1,304 @@
-import React from 'react';
+'use client'
+
+// React Imports
+import { useEffect, useMemo, useState } from 'react'
 
 // MUI Imports
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
+import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
+import Divider from '@mui/material/Divider'
+import TablePagination from '@mui/material/TablePagination'
+import Typography from '@mui/material/Typography'
+import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
+import type { TextFieldProps } from '@mui/material/TextField'
 
-// Icon Imports
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+// Third-party Imports
+import classnames from 'classnames'
+import { rankItem } from '@tanstack/match-sorter-utils'
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getFilteredRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFacetedMinMaxValues,
+  getPaginationRowModel,
+  getSortedRowModel
+} from '@tanstack/react-table'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
+import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Store & Type Imports
-import { useRoomStore } from '@core/domain/store/rooms/room.store';
-import { Room } from '@core/domain/models/rooms/list.model';
-import { nullable } from 'zod';
+import { useRoomStore } from '@core/domain/store/rooms/room.store'
+import { Room } from '@core/domain/models/rooms/list.model'
+
+// Style Imports
+import tableStyles from '@core/styles/table.module.css'
+
+// Component Imports
+import CustomTextField from '@core/components/mui/TextField'
+import RoomStatusChip from './RoomStatus'
+import RoomActionButtons from './RoomActions'
+
+declare module '@tanstack/table-core' {
+  interface FilterFns {
+    fuzzy: FilterFn<unknown>
+  }
+  interface FilterMeta {
+    itemRank: RankingInfo
+  }
+}
+
+type RoomWithActionsType = Room & {
+  actions?: string
+}
+
+const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  // Rank the item
+  const itemRank = rankItem(row.getValue(columnId), value)
+
+  // Store the itemRank info
+  addMeta({
+    itemRank
+  })
+
+  // Return if the item should be filtered in/out
+  return itemRank.passed
+}
+
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number
+  onChange: (value: string | number) => void
+  debounce?: number
+} & Omit<TextFieldProps, 'onChange'>) => {
+  // States
+  const [value, setValue] = useState(initialValue)
+
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value)
+    }, debounce)
+
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+}
+
+// Column Definitions
+const columnHelper = createColumnHelper<RoomWithActionsType>()
 
 export interface RoomDataTableProps {
-    data: Room[];
-    loading?: boolean;
-    onEdit: (item: Room) => void;
+  data: Room[]
+  loading?: boolean
+  onEdit: (item: Room) => void
 }
 
 export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTableProps) => {
-    const { delete: deleteRoom } = useRoomStore();
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+  // States
+  const { delete: deleteRoom } = useRoomStore()
+  const [rowSelection, setRowSelection] = useState({})
+  const [filteredData, setFilteredData] = useState(data)
+  const [globalFilter, setGlobalFilter] = useState('')
 
-    const handleChangePage = (event: unknown, newPage: number) => {
-        setPage(newPage);
-    };
+  // Update filtered data when data changes
+  useEffect(() => {
+    setFilteredData(data)
+  }, [data])
 
-    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+  const handleDelete = async (id: number) => {
+    if (window.confirm('ທ່ານຕ້ອງການລຶບຂໍ້ມູນນີ້ແທ້ບໍ່?')) {
+      try {
+        await deleteRoom(id)
+        // Success message would go here
+      } catch (error) {
+        // Error message would go here
+        console.error('Error deleting room:', error)
+      }
+    }
+  }
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('คุณต้องการลบข้อมูลนี้ใช่หรือไม่?')) {
-            try {
-                await deleteRoom(id);
-                // Success message would go here
-            } catch (error) {
-                // Error message would go here
-                console.error('Error deleting room:', error);
-            }
+  const formatRoomId = (id: number): string => {
+    return `R${String(id).padStart(3, '0')}`
+  }
+
+  const formatPrice = (price: number): string => {
+    const formatted = new Intl.NumberFormat('th-TH', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price)
+
+    return `${formatted} KIP`
+  }
+
+  const columns = useMemo<ColumnDef<RoomWithActionsType, any>[]>(
+    () => [
+      columnHelper.accessor('RoomId', {
+        header: () => <div className='text-center font-medium text-base' >ລຳດັບ</div>,
+        cell: ({ row }) => <Typography align='center'>{row.index + 1}</Typography>,
+        enableSorting: false
+      }),
+      columnHelper.accessor('RoomId', {
+        id: 'roomCode',
+        header: () => <div className='text-center font-medium text-base'>ລະຫັດຫ້ອງ</div>,
+        cell: ({ row }) => <Typography align='center'>{formatRoomId(row.original.RoomId)}</Typography>
+      }),
+      columnHelper.accessor('roomType.TypeName', {
+        header: () => <div className='text-center font-medium text-base'>ປະເພດຫ້ອງ</div>,
+        cell: ({ getValue }) => <Typography align='center'>{getValue() || 'Unknown'}</Typography>
+      }),
+      columnHelper.accessor('RoomPrice', {
+        header: () => <div className='text-center font-medium text-base'>ລາຄາ</div>,
+        cell: ({ row }) => <Typography align='center'>{formatPrice(row.original.RoomPrice)}</Typography>
+      }),
+      columnHelper.accessor('roomStatus', {
+        header: () => <div className='text-center font-medium text-base'>ສະຖານະ</div>,
+        cell: ({ row }) => {
+          const status = row.original.roomStatus;
+          return <RoomStatusChip status={status} />;
         }
-    };
+      }),
+      columnHelper.accessor('actions', {
+        header: () => <div className='text-center font-medium text-base'>ຈັດການ</div>,
+        cell: ({ row }) => (
+          <RoomActionButtons 
+            room={row.original} 
+            onEdit={onEdit} 
+            onDelete={handleDelete} 
+          />
+        ),
+        enableSorting: false
+      })
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredData]
+  )
 
-    const formatRoomId = (id: number): string => {
-        return `R${String(id).padStart(3, '0')}`;
-    };
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    filterFns: {
+      fuzzy: fuzzyFilter
+    },
+    state: {
+      rowSelection,
+      globalFilter
+    },
+    initialState: {
+      pagination: {
+        pageSize: 25
+      }
+    },
+    enableRowSelection: true,
+    globalFilterFn: fuzzyFilter,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues()
+  })
 
-    const formatPrice = (price: number): string => {
-        return new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB'
-        }).format(price);
-    };
+  return (
+    <Card>
+      <Divider />
+      <div className='overflow-x-auto'>
+        <table className={tableStyles.table}>
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <>
+                        <div
+                          className={classnames({
+                            'flex items-center justify-center': header.column.getIsSorted(),
+                            'cursor-pointer select-none': header.column.getCanSort()
+                          })}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {{
+                            asc: <i className='tabler-chevron-up text-xl ml-2' />,
+                            desc: <i className='tabler-chevron-down text-xl ml-2' />
+                          }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                        </div>
+                      </>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          {loading ? (
+            <tbody>
+              <tr>
+                <td colSpan={table.getVisibleFlatColumns().length} className='text-center py-10'>
+                  <CircularProgress size={40} />
+                  <Box sx={{ mt: 2 }}>ກຳລັງໂຫລດຂໍ້ມູນ...</Box>
+                </td>
+              </tr>
+            </tbody>
+          ) : table.getFilteredRowModel().rows.length === 0 ? (
+            <tbody>
+              <tr>
+                <td colSpan={table.getVisibleFlatColumns().length} className='text-center py-10'>
+                  ບໍ່ມີຂໍ້ມູນຫ້ອງພັກ
+                </td>
+              </tr>
+            </tbody>
+          ) : (
+            <tbody>
+              {table
+                .getRowModel()
+                .rows.slice(0, table.getState().pagination.pageSize)
+                .map(row => {
+                  return (
+                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      ))}
+                    </tr>
+                  )
+                })}
+            </tbody>
+          )}
+        </table>
+      </div>
+      <TablePagination
+        component='div'
+        count={table.getFilteredRowModel().rows.length}
+        rowsPerPage={table.getState().pagination.pageSize}
+        page={table.getState().pagination.pageIndex}
+        onPageChange={(_, page) => {
+          table.setPageIndex(page)
+        }}
+        onRowsPerPageChange={e => {
+          table.setPageSize(Number(e.target.value))
+        }}
+        labelRowsPerPage='ແຖວຕໍ່ໜ້າ'
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} ຈາກ ${count}`}
+      />
+    </Card>
+  )
+}
 
-    const formatDate = (dateString: string | null): string => {
-        if (!dateString) return '-';
-        
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('th-TH', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
-    };
-
-    const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
-        switch (status) {
-            case 'Available':
-                return 'success';
-            case 'Occupied':
-                return 'warning';
-            case 'Maintenance':
-                return 'error';
-            default:
-                return 'default';
-        }
-    };
-
-    // Avoid a layout jump when reaching the last page with empty rows
-    const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - data.length) : 0;
-
-    return (
-        <Card>
-            <CardHeader title="รายการห้องพัก" />
-            <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
-                <Table stickyHeader aria-label="room table" size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell align="center">#</TableCell>
-                            <TableCell align="center">รหัสห้อง</TableCell>
-                            <TableCell align="center">ประเภทห้อง</TableCell>
-                            <TableCell align="center">สถานะ</TableCell>
-                            <TableCell align="right">ราคา</TableCell>
-                            <TableCell align="center">วันที่สร้าง</TableCell>
-                            <TableCell align="center">วันที่แก้ไข</TableCell>
-                            <TableCell align="center">จัดการ</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={8} align="center" sx={{ py: 5 }}>
-                                    <CircularProgress size={40} />
-                                    <Box sx={{ mt: 2 }}>กำลังโหลดข้อมูล...</Box>
-                                </TableCell>
-                            </TableRow>
-                        ) : data.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={8} align="center" sx={{ py: 5 }}>
-                                    ไม่พบข้อมูลห้องพัก
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            data
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((room, index) => (
-                                    <TableRow key={room.RoomId} hover>
-                                        <TableCell align="center">{page * rowsPerPage + index + 1}</TableCell>
-                                        <TableCell align="center">{formatRoomId(room.RoomId)}</TableCell>
-                                        <TableCell align="center">{room.roomType?.TypeName || 'Unknown'}</TableCell>
-                                        <TableCell align="center">
-                                            <Chip 
-                                                label={room.roomStatus?.StatusName || 'Unknown'} 
-                                                color={getStatusColor(room.roomStatus?.StatusName || '')}
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                        <TableCell align="right">{formatPrice(room.RoomPrice)}</TableCell>
-                                        <TableCell align="center">{formatDate(room.createdAt ?? null)}</TableCell>
-                                        <TableCell align="center">{formatDate(room.updatedAt ?? null)}</TableCell>
-                                        <TableCell align="center">
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                                                <Tooltip title="แก้ไข">
-                                                    <IconButton 
-                                                        size="small" 
-                                                        color="primary" 
-                                                        onClick={() => onEdit(room)}
-                                                    >
-                                                        <EditIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="ลบ">
-                                                    <IconButton 
-                                                        size="small" 
-                                                        color="error" 
-                                                        onClick={() => handleDelete(room.RoomId)}
-                                                    >
-                                                        <DeleteIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                        )}
-                        {emptyRows > 0 && (
-                            <TableRow style={{ height: 33 * emptyRows }}>
-                                <TableCell colSpan={8} />
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[10, 25, 50, 100]}
-                component="div"
-                count={data.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                labelRowsPerPage="แถวต่อหน้า"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} จาก ${count}`}
-            />
-        </Card>
-    );
-};
+export default RoomDataTable
