@@ -25,7 +25,8 @@ import { useRoomStatusStore } from '@core/domain/store/room-status.store'
 // Schema Imports
 import { RoomFormSchema } from '@core/domain/schemas/room.schema'
 import { Room } from '@core/domain/models/rooms/list.model'
-
+import { toast } from 'react-toastify'
+import { MESSAGES } from '../../../../libs/constants/messages.constant'
 interface RoomFormInputProps {
   open: boolean
   onClose: () => void
@@ -36,7 +37,7 @@ const RoomFormInput: React.FC<RoomFormInputProps> = ({ open, onClose, selectedIt
   // ดึงข้อมูลประเภทห้องและสถานะห้อง
   const { roomTypes, fetchRoomTypes } = useRoomTypeStore()
   const { roomStatuses, fetchRoomStatuses } = useRoomStatusStore()
-  const { create, update } = useRoomStore()
+  const { create, update, fetchItems } = useRoomStore()
 
   // สถานะสำหรับแสดงการโหลด
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -79,26 +80,27 @@ const RoomFormInput: React.FC<RoomFormInputProps> = ({ open, onClose, selectedIt
     }
   }, [selectedItem, reset])
 
-  // บันทึกข้อมูล
   const onSubmit = async (data: any) => {
-    setIsSubmitting(true)
-
     try {
-      if (selectedItem) {
-        // แก้ไขข้อมูล
-        await update(selectedItem.RoomId, data)
-      } else {
-        // เพิ่มข้อมูลใหม่
-        await create(data)
+      const formData = {
+        TypeId: data.TypeId,
+        StatusId: data.StatusId,
+        RoomPrice: data.RoomPrice
       }
-
-      // ปิดฟอร์มและรีเซ็ตค่า
+      
+      if (selectedItem) {
+        await update(selectedItem.RoomId, formData)
+        toast.success(MESSAGES.SUCCESS.EDIT) 
+      } else {
+        await create(formData)
+        toast.success(MESSAGES.SUCCESS.SAVE) 
+      }
+  
       onClose()
-      reset()
     } catch (error) {
-      console.error('Error saving room:', error)
-    } finally {
-      setIsSubmitting(false)
+      console.error('Error saving form:', error)
+      
+      toast.error(selectedItem ? MESSAGES.ERROR.EDIT : MESSAGES.ERROR.SAVE)
     }
   }
 

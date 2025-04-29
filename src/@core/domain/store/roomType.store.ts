@@ -1,4 +1,3 @@
-// src/core/domain/store/room-type.store.ts
 import { create } from 'zustand';
 import { RoomTypeModel } from '@core/domain/models/room-type/list.model';
 import { roomTypeService } from '@core/services/room-type.service';
@@ -16,7 +15,7 @@ interface RoomTypeState {
   deleteRoomType: (id: number) => Promise<boolean>;
 }
 
-export const useRoomTypeStore = create<RoomTypeState>((set) => ({
+export const useRoomTypeStore = create<RoomTypeState>((set, get) => ({
   roomTypes: [],
   loading: false,
   error: null,
@@ -51,16 +50,16 @@ export const useRoomTypeStore = create<RoomTypeState>((set) => ({
       setLoading(true);
       set({ loading: true, error: null });
       
-      const result = await roomTypeService.create(data);
+      const createResponse = await roomTypeService.create(data);
+      const completeItem = await roomTypeService.getOne(createResponse.TypeId);
       
-      // เพิ่มประเภทห้องใหม่เข้าไปในรายการ
       set((state) => ({
-        roomTypes: [...state.roomTypes, result],
+        roomTypes: [...state.roomTypes, completeItem],
         loading: false
       }));
       
       setLoading(false);
-      return result;
+      return completeItem;
     } catch (error: any) {
       set({ loading: false, error: error.message || 'Failed to create room type' });
       setLoading(false);
@@ -81,10 +80,10 @@ export const useRoomTypeStore = create<RoomTypeState>((set) => ({
       const success = await roomTypeService.update(id, data);
       
       if (success) {
-        // อัปเดตประเภทห้องในรายการ
+        const updatedItem = await roomTypeService.getOne(id);
         set((state) => ({
           roomTypes: state.roomTypes.map((type) =>
-            type.TypeId === id ? { ...type, ...data } : type
+            type.TypeId === id ? updatedItem : type
           ),
           loading: false
         }));
@@ -112,7 +111,6 @@ export const useRoomTypeStore = create<RoomTypeState>((set) => ({
       const success = await roomTypeService.delete(id);
       
       if (success) {
-        // ลบประเภทห้องออกจากรายการ
         set((state) => ({
           roomTypes: state.roomTypes.filter((type) => type.TypeId !== id),
           loading: false

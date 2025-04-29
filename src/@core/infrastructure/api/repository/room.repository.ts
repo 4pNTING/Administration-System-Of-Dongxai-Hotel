@@ -1,4 +1,3 @@
-
 import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
 import { RoomRepositoryPort } from "@core/interface/repositoriesport/room.port";
@@ -16,7 +15,7 @@ export class RoomRepository implements RoomRepositoryPort {
       const response = await api.post<ApiResponse<Room[]>>(this.URL.GET, query);
       return response.data.data;
     } catch (error) {
-     
+      console.error('Error fetching rooms:', error);
       throw error;
     }
   }
@@ -27,6 +26,7 @@ export class RoomRepository implements RoomRepositoryPort {
       const response = await api.post<ApiResponse<Room>>(this.URL.GET, query);
       return response.data.data;
     } catch (error) {
+      console.error('Error fetching room details:', error);
       throw error;
     }
   }
@@ -39,6 +39,7 @@ export class RoomRepository implements RoomRepositoryPort {
       );
       return response.data.data;
     } catch (error) {
+      console.error('Error fetching available rooms:', error);
       throw error;
     }
   }
@@ -48,15 +49,27 @@ export class RoomRepository implements RoomRepositoryPort {
       const response = await api.post<ApiResponse<Room>>(this.URL.CREATE, data);
       return response.data.data;
     } catch (error) {
+      console.error('Error creating room:', error);
       throw error;
     }
   }
 
   async update(id: number, data: Partial<RoomFormData>): Promise<Room> {
     try {
-      const response = await api.put<ApiResponse<Room>>(this.URL.UPDATE(id), data);
+      // สร้าง object ใหม่ที่มีเฉพาะฟิลด์ที่จำเป็นสำหรับการอัปเดต
+      const updateData = {
+        TypeId: data.TypeId,
+        StatusId: data.StatusId,
+        RoomPrice: data.RoomPrice
+      };
+      
+      console.log('Updating room:', id, 'with data:', updateData);
+      
+      // เปลี่ยนจาก PUT เป็น PATCH ตาม controller ในฝั่ง backend
+      const response = await api.patch<ApiResponse<Room>>(this.URL.UPDATE(id), updateData);
       return response.data.data;
     } catch (error) {
+      console.error('Error updating room:', error);
       throw error;
     }
   }
@@ -65,6 +78,7 @@ export class RoomRepository implements RoomRepositoryPort {
     try {
       await api.delete<ApiResponse<void>>(this.URL.DELETE(id));
     } catch (error) {
+      console.error('Error deleting room:', error);
       throw error;
     }
   }

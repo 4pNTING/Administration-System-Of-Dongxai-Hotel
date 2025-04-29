@@ -16,6 +16,7 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
+import TextField from '@mui/material/TextField'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -33,88 +34,21 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 // Style Imports
 import styles from '@core/styles/table.module.css'
 
+// Store or Repository Import (adjust based on your project structure)
+import { useRoomStore } from '@core/domain/store/rooms/room.store' // Adjust this import path
+// นำเข้า toast จาก Vuexy
+import { toast } from 'react-toastify'
+
+// นำเข้าข้อความภาษาลาว
+import { MESSAGES, DROPDOWN } from '../../../libs/constants/messages.constant'
 // Define Room Data Type
 export type RoomDataType = {
   id: number
-  RoomId: string
+  RoomId: number
   RoomType: string
   roomstatus: string
   roomprice: number
 }
-
-// Mock Room Data
-const roomData: RoomDataType[] = [
-  {
-    id: 1,
-    RoomId: "R001",
-    RoomType: "Standard",
-    roomstatus: "Available",
-    roomprice: 1500
-  },
-  {
-    id: 2,
-    RoomId: "R002",
-    RoomType: "Deluxe",
-    roomstatus: "Occupied",
-    roomprice: 2500
-  },
-  {
-    id: 3,
-    RoomId: "R003",
-    RoomType: "Suite",
-    roomstatus: "Maintenance",
-    roomprice: 3500
-  },
-  {
-    id: 4,
-    RoomId: "R004",
-    RoomType: "Standard",
-    roomstatus: "Available",
-    roomprice: 1500
-  },
-  {
-    id: 5,
-    RoomId: "R005",
-    RoomType: "Deluxe",
-    roomstatus: "Available",
-    roomprice: 2500
-  },
-  {
-    id: 6,
-    RoomId: "R006",
-    RoomType: "Suite",
-    roomstatus: "Occupied",
-    roomprice: 3500
-  },
-  {
-    id: 7,
-    RoomId: "R007",
-    RoomType: "Standard",
-    roomstatus: "Maintenance",
-    roomprice: 1500
-  },
-  {
-    id: 8,
-    RoomId: "R008",
-    RoomType: "Deluxe",
-    roomstatus: "Available",
-    roomprice: 2500
-  },
-  {
-    id: 9,
-    RoomId: "R009",
-    RoomType: "Suite",
-    roomstatus: "Occupied",
-    roomprice: 3500
-  },
-  {
-    id: 10,
-    RoomId: "R010",
-    RoomType: "Standard",
-    roomstatus: "Available",
-    roomprice: 1500
-  }
-]
 
 // Column Definitions
 const columnHelper = createColumnHelper<RoomDataType>()
@@ -168,33 +102,83 @@ const DebouncedInput = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
-  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
-
-// Custom Text Field Component (assuming it exists, if not, replace with MUI TextField)
-const CustomTextField = (props: TextFieldProps) => {
-  return <TextField {...props} />
-}
-
-// Import TextField if CustomTextField doesn't exist
-import TextField from '@mui/material/TextField'
 
 const RoomTable = () => {
   // States
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [filterValue, setFilterValue] = useState<string>('all')
-  const [data, setData] = useState<RoomDataType[]>(() => roomData)
+  const [data, setData] = useState<RoomDataType[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // เรียกใช้งาน store
+  const roomStore = useRoomStore()
+
+  // Fetch rooms data on component mount
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true)
+        await roomStore.fetchItems()
+        
+        // แปลงรูปแบบข้อมูลสำหรับแสดงในตาราง
+        const formattedData = roomStore.items.map(room => ({
+          id: room.RoomId,
+          RoomId: room.RoomId,
+          RoomType: room.roomType?.TypeName || 'Unknown',
+          roomstatus: room.roomStatus?.StatusName || 'Unknown',
+          roomprice: room.RoomPrice
+        }))
+        
+        setData(formattedData)
+      } catch (error) {
+        console.error('Error fetching rooms:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRooms()
+    // ระวัง! ไม่รวม roomStore เป็น dependency เพราะจะทำให้เกิดการเรียกซ้ำ
+  }, [])
 
   // Handlers
   const handleEdit = (id: number) => {
     console.log('Edit item with id:', id)
-    // Implement your edit logic
+    // Navigate to edit page or open edit modal
+    window.location.href = `/rooms/edit/${id}`
   }
 
-  const handleDelete = (id: number) => {
-    console.log('Delete item with id:', id)
-    // Implement your delete logic
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this room?')) {
+      try {
+        setLoading(true)
+        await roomStore.delete(id)
+        
+        // แสดงข้อความสำเร็จเมื่อลบข้อมูลสำเร็จ
+        toast.success(MESSAGES.SUCCESS.DELETE)
+        
+        // อัปเดตข้อมูลในตาราง
+        setData(data.filter(room => room.id !== id))
+        setLoading(false)
+      } catch (error) {
+        console.error('Error deleting room:', error)
+        // แสดงข้อความผิดพลาดเมื่อลบข้อมูลไม่สำเร็จ
+        toast.error(MESSAGES.ERROR.DELETE)
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleAddRoom = () => {
+    window.location.href = '/rooms/create'
+  }
+
+  // Format RoomId to display as R001, R002, etc.
+  const formatRoomId = (id: number): string => {
+    return id.toString();
   }
 
   // Hooks
@@ -215,7 +199,7 @@ const RoomTable = () => {
           <div style={{ textAlign: 'center' }}>Room ID</div>
         ),
         cell: info => (
-          <div style={{ textAlign: 'center' }}>{info.getValue()}</div>
+          <div style={{ textAlign: 'center' }}>{formatRoomId(info.getValue())}</div>
         )
       }),
       columnHelper.accessor('RoomType', {
@@ -239,7 +223,7 @@ const RoomTable = () => {
           <div style={{ textAlign: 'center' }}>Price</div>
         ),
         cell: info => (
-          <div style={{ textAlign: 'center' }}>{info.getValue()}</div>
+          <div style={{ textAlign: 'center' }}>{info.getValue().toLocaleString()}</div>
         )
       }),
       // Actions column for edit and delete
@@ -301,6 +285,17 @@ const RoomTable = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table.getState().columnFilters[0]?.id])
 
+  // Filter data based on filterValue
+  useEffect(() => {
+    if (filterValue === 'all') {
+      // Reset filters when "All Rooms" is selected
+      table.resetColumnFilters()
+    } else {
+      // Apply filter for room status
+      table.getColumn('roomstatus')?.setFilterValue(filterValue)
+    }
+  }, [filterValue, table])
+
   return (
     <Card>
       <CardHeader title='Room Management' />
@@ -318,9 +313,9 @@ const RoomTable = () => {
               startAdornment={<FilterListIcon fontSize="small" sx={{ mr: 1 }} />}
             >
               <MenuItem value="all">All Rooms</MenuItem>
-              <MenuItem value="available">Available</MenuItem>
-              <MenuItem value="occupied">Occupied</MenuItem>
-              <MenuItem value="maintenance">Maintenance</MenuItem>
+              <MenuItem value="Available">Available</MenuItem>
+              <MenuItem value="Occupied">Occupied</MenuItem>
+              <MenuItem value="Maintenance">Maintenance</MenuItem>
             </Select>
           </FormControl>
           
@@ -333,62 +328,70 @@ const RoomTable = () => {
           />
         </Box>
         
-        <Button variant="contained" color="primary">
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={handleAddRoom}
+        >
           Add New Room
         </Button>
       </Box>
       
       <div className='overflow-x-auto'>
-        <table className={styles.table}>
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => {
+        {loading ? (
+          <div className="text-center py-4">Loading rooms data...</div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => {
+                    return (
+                      <th key={header.id}>
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={classnames({
+                              'flex items-center justify-center': true,
+                              'cursor-pointer select-none': header.column.getCanSort()
+                            })}
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {{
+                              asc: <ChevronRight fontSize='1.25rem' className='-rotate-90' />,
+                              desc: <ChevronRight fontSize='1.25rem' className='rotate-90' />
+                            }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                          </div>
+                        )}
+                      </th>
+                    )
+                  })}
+                </tr>
+              ))}
+            </thead>
+            {table.getFilteredRowModel().rows.length === 0 ? (
+              <tbody>
+                <tr>
+                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                    No data available
+                  </td>
+                </tr>
+              </tbody>
+            ) : (
+              <tbody>
+                {table.getRowModel().rows.map(row => {
                   return (
-                    <th key={header.id}>
-                      {header.isPlaceholder ? null : (
-                        <div
-                          className={classnames({
-                            'flex items-center justify-center': true,
-                            'cursor-pointer select-none': header.column.getCanSort()
-                          })}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                          {{
-                            asc: <ChevronRight fontSize='1.25rem' className='-rotate-90' />,
-                            desc: <ChevronRight fontSize='1.25rem' className='rotate-90' />
-                          }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
-                        </div>
-                      )}
-                    </th>
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map(cell => {
+                        return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      })}
+                    </tr>
                   )
                 })}
-              </tr>
-            ))}
-          </thead>
-          {table.getFilteredRowModel().rows.length === 0 ? (
-            <tbody>
-              <tr>
-                <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                  No data available
-                </td>
-              </tr>
-            </tbody>
-          ) : (
-            <tbody>
-              {table.getRowModel().rows.map(row => {
-                return (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map(cell => {
-                      return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                    })}
-                  </tr>
-                )
-              })}
-            </tbody>
-          )}
-        </table>
+              </tbody>
+            )}
+          </table>
+        )}
       </div>
       <TablePagination
         component="div"

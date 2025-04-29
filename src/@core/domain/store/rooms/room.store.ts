@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Room } from '@core/domain/models/rooms/list.model';
 import { roomService } from '@core/services/room.service';
@@ -72,9 +71,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     try {
       setLoading(true);
       await roomService.delete(id);
-      set((state) => ({
-        items: state.items.filter((item) => item.RoomId !== id)
-      }));
+      get().removeItem(id);
       setLoading(false);
     } catch (error: any) {
       setLoading(false);
@@ -98,19 +95,20 @@ export const useRoomStore = create<RoomState>((set, get) => ({
       set({ isSubmitting: true });
       setLoading(true);
       
-      const result = await roomService.create(data as any);
+      const createResponse = await roomService.create(data as any);
+      const completeItem = await roomService.getOne(createResponse.RoomId);
       
-      // เพิ่มข้อมูลห้องพักใหม่ลงในรายการ
-      set((state) => ({
-        items: [...state.items, result],
+      get().addItem(completeItem);
+      
+      set({
         isSubmitting: false,
         isVisible: false,
         isFormVisible: false,
         selectedItem: null
-      }));
+      });
       
       setLoading(false);
-      return result;
+      return completeItem;
     } catch (error: any) {
       set({ isSubmitting: false });
       setLoading(false);
@@ -127,22 +125,33 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     try {
       set({ isSubmitting: true });
       setLoading(true);
+  
+      // ส่งเฉพาะข้อมูลที่จำเป็นไปยัง API
+      const updateData = {
+        TypeId: data.TypeId,
+        StatusId: data.StatusId,
+        RoomPrice: data.RoomPrice
+      };
       
-      const result = await roomService.update(id, data as any);
+      // เรียกใช้ API update โดยส่งเฉพาะข้อมูลที่จำเป็น
+      await roomService.update(id, updateData);
       
-      // อัปเดตข้อมูลห้องพักในรายการ
-      set((state) => ({
-        items: state.items.map((item) => 
-          item.RoomId === id ? { ...item, ...result } : item
-        ),
+      // ดึงข้อมูลใหม่จาก API หลังจากอัปเดต
+      const updatedItem = await roomService.getOne(id);
+      get().updateItem(id, updatedItem);
+      
+      // รีเฟรชข้อมูลเพื่อให้แน่ใจว่าได้ข้อมูลล่าสุด
+      await get().fetchItems();
+      
+      set({
         isSubmitting: false,
         isVisible: false,
         isFormVisible: false,
         selectedItem: null
-      }));
+      });
       
       setLoading(false);
-      return result;
+      return updatedItem;
     } catch (error: any) {
       set({ isSubmitting: false });
       setLoading(false);
@@ -152,7 +161,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     }
   },
   
-  reset: () => set({ 
+  reset: () => set({  
     isVisible: false,
     isSubmitting: false,
     selectedItem: null 

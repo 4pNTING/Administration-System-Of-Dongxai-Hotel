@@ -64,10 +64,11 @@ export default function RoomPage() {
   const handleFormClose = () => {
     setSelectedItem(null);
     setFormOpen(false);
+    
   };
 
   return (
-    <Grid container spacing={4} justifyContent="center">
+    <Grid  spacing={4} justifyContent="center">
       <Grid item xs={12} md={10} lg={9}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" fontWeight={600}>

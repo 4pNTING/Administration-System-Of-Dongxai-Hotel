@@ -15,7 +15,7 @@ const ENDPOINTS = {
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
     },
     STAFF: {
-        BASE_URL: '/staffs' as const,
+        BASE_URL: '/staff' as const,
         get GET() { return `${this.BASE_URL}/query` },
         get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },

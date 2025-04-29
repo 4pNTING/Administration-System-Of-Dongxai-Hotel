@@ -32,16 +32,16 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Store & Type Imports
-import { useRoomStore } from '@core/domain/store/rooms/room.store'
-import { Room } from '@core/domain/models/rooms/list.model'
+import { useStaffStore } from '@core/domain/store/staffs/staff.store'
+import { Staff } from '@core/domain/models/staffs/list.model'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
-import RoomStatusChip from './RoomStatus'
-import RoomActionButtons from './RoomActions'
+import StaffStatusChip from '../../../views/apps/staff/StaffStatusChip'
+import StaffActionButtons from '../../../views/apps/staff/StaffActionButtons'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -52,8 +52,16 @@ declare module '@tanstack/table-core' {
   }
 }
 
-type RoomWithActionsType = Room & {
-  actions?: string
+// ปรับปรุง type definition ให้รองรับ role
+type StaffWithActionsType = Staff & {
+  actions?: string;
+  role?: {
+    id: number;
+    name: string;
+    description?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  };
 }
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
@@ -99,19 +107,20 @@ const DebouncedInput = ({
 }
 
 // Column Definitions
-const columnHelper = createColumnHelper<RoomWithActionsType>()
+const columnHelper = createColumnHelper<StaffWithActionsType>()
 
-export interface RoomDataTableProps {
-  data: Room[]
+export interface StaffDataTableProps {
+  data: StaffWithActionsType[]
   loading?: boolean
-  onEdit: (item: Room) => void
+  onEdit: (item: StaffWithActionsType) => void
+  currentUserRole?: number
 }
 
-export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTableProps) => {
+export const StaffDataTable = ({ data, loading = false, onEdit , currentUserRole = 0 }: StaffDataTableProps) => {
   // States
-  const { delete: deleteRoom ,fetchItems } = useRoomStore()
+  const { delete: deleteStaff, fetchItems } = useStaffStore()
   const [rowSelection, setRowSelection] = useState({})
-  const [filteredData, setFilteredData] = useState(data)
+  const [filteredData, setFilteredData] = useState<StaffWithActionsType[]>(data)
   const [globalFilter, setGlobalFilter] = useState('')
 
   // Update filtered data when data changes
@@ -120,74 +129,98 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
   }, [data])
 
   const handleDelete = async (id: number) => {
-   
-      try {
-        await deleteRoom(id);
-        await fetchItems();
+    try {
+      await deleteStaff(id);
+      await fetchItems();
+    } catch (error) {
+      console.error('Error deleting staff:', error)
+    }
+  }
 
-      } catch (error) {
-        // Error message would go here
-        console.error('Error deleting room:', error)
-      }
+  const formatStaffId = (id: number): string => {
+    return `S${String(id).padStart(3, '0')}`
+  }
+
+  const formatSalary = (salary: number | null): string => {
+    if (salary === null) return '0 ກີບ';
     
-  }
-
-  const formatRoomId = (id: number): string => {
-    return `R${String(id).padStart(3, '0')}`
-  }
-
-  const formatPrice = (price: number): string => {
     const formatted = new Intl.NumberFormat('th-TH', {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(price)
+    }).format(salary)
 
-    return `${formatted} KIP`
+    return `${formatted} ກີບ`
   }
 
-  const columns = useMemo<ColumnDef<RoomWithActionsType, any>[]>(
+  // Helper function to get role name
+  const getRoleName = (staff: StaffWithActionsType): string => {
+    if (staff.role && staff.role.name) {
+      return staff.role.name;
+    }
+    
+    // Fallback if role is not available
+    switch (staff.roleId) {
+      case 1: return 'admin';
+      case 2: return 'receptionist';
+      case 3: return 'staff';
+      case 4: return 'manager';
+      default: return 'unknown';
+    }
+  }
+
+  const columns = useMemo<ColumnDef<StaffWithActionsType, any>[]>(
     () => [
-      columnHelper.accessor('RoomId', {
-        header: () => <div className='text-center font-medium text-base' >ລຳດັບ</div>,
+      columnHelper.accessor('id', {
+        header: () => <div className='text-center font-medium text-base'>ລຳດັບ</div>,
         cell: ({ row }) => <Typography align='center'>{row.index + 1}</Typography>,
         enableSorting: false
       }),
-      columnHelper.accessor('RoomId', {
-        id: 'roomCode',
-        header: () => <div className='text-center font-medium text-base'>ລະຫັດຫ້ອງ</div>,
-        cell: ({ row }) => <Typography align='center'>{formatRoomId(row.original.RoomId)}</Typography>
+      columnHelper.accessor('id', {
+        id: 'staffCode',
+        header: () => <div className='text-center font-medium text-base'>ລະຫັດພະນັກງານ</div>,
+        cell: ({ row }) => <Typography align='center'>{formatStaffId(row.original.id)}</Typography>
       }),
-      columnHelper.accessor(row => row.roomType?.TypeName, {
-        id: 'roomTypeName',
-        header: () => <div className='text-center font-medium text-base'>ປະເພດຫ້ອງ</div>,
-        cell: ({ row }) => <Typography align='center'>{row.original.roomType?.TypeName || 'Unknown'}</Typography>
+      columnHelper.accessor('name', {
+        header: () => <div className='text-center font-medium text-base'>ຊື່ພະນັກງານ</div>,
+        cell: ({ row }) => <Typography align='center'>{row.original.name}</Typography>
       }),
-      columnHelper.accessor('RoomPrice', {
-        header: () => <div className='text-center font-medium text-base'>ລາຄາ</div>,
-        cell: ({ row }) => <Typography align='center'>{formatPrice(row.original.RoomPrice)}</Typography>
+      columnHelper.accessor('tel', {
+        header: () => <div className='text-center font-medium text-base'>ເບີໂທລະສັບ</div>,
+        cell: ({ row }) => <Typography align='center'>{row.original.tel || '-'}</Typography>
       }),
-      columnHelper.accessor('roomStatus', {
-        header: () => <div className='text-center font-medium text-base'>ສະຖານະ</div>,
-        cell: ({ row }) => {
-          const status = row.original.roomStatus;
-          return <RoomStatusChip status={status} />;
-        }
+      columnHelper.accessor('userName', {
+        header: () => <div className='text-center font-medium text-base'>ຊື່ຜູ້ໃຊ້</div>,
+        cell: ({ row }) => <Typography align='center'>{row.original.userName}</Typography>
+      }),
+      columnHelper.accessor('salary', {
+        header: () => <div className='text-center font-medium text-base'>ເງິນເດືອນ</div>,
+        cell: ({ row }) => <Typography align='center'>{formatSalary(row.original.salary)}</Typography>
+      }),
+      columnHelper.accessor('gender', {
+        header: () => <div className='text-center font-medium text-base'>ເພດ</div>,
+        cell: ({ row }) => <StaffStatusChip gender={row.original.gender} />
+      }),
+      columnHelper.accessor('roleId', {
+        id: 'roleName',
+        header: () => <div className='text-center font-medium text-base'>ສິດການໃຊ້ງານ</div>,
+        cell: ({ row }) => <Typography align='center'>{getRoleName(row.original)}</Typography>
       }),
       columnHelper.accessor('actions', {
         header: () => <div className='text-center font-medium text-base'>ຈັດການ</div>,
         cell: ({ row }) => (
-          <RoomActionButtons 
-            room={row.original} 
+          <StaffActionButtons 
+            staff={row.original} 
             onEdit={onEdit} 
             onDelete={handleDelete} 
+            currentUserRole={currentUserRole} 
           />
         ),
         enableSorting: false
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredData]
+    [filteredData,currentUserRole]
   )
 
   const table = useReactTable({
@@ -220,6 +253,7 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
 
   return (
     <Card>
+     
       <Divider />
       <div className='overflow-x-auto'>
         <table className={tableStyles.table}>
@@ -263,7 +297,7 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
             <tbody>
               <tr>
                 <td colSpan={table.getVisibleFlatColumns().length} className='text-center py-10'>
-                  ບໍ່ມີຂໍ້ມູນຫ້ອງພັກ
+                  ບໍ່ມີຂໍ້ມູນພະນັກງານ
                 </td>
               </tr>
             </tbody>
@@ -303,4 +337,4 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
   )
 }
 
-export default RoomDataTable
+export default StaffDataTable

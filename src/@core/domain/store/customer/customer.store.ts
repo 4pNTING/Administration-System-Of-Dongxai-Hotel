@@ -1,4 +1,3 @@
-// src/core/presentation/stores/customer.store.ts
 import { create } from 'zustand';
 import { Customer } from '@core/domain/models/customer/list.model';
 import { customerService } from '@core/services/customer.service';
@@ -7,20 +6,16 @@ import { useLoadingStore } from '../useLoading.store';
 import { CustomerInput } from '@core/domain/models/customer/form.model';
 import { CustomerState } from '@core/domain/models/customer/state.model';
 
-// สร้าง Zustand store
 export const useCustomerStore = create<CustomerState>((set, get) => ({
-    // สถานะเริ่มต้นของรายการลูกค้า
     items: [],
     isLoading: false,
     filters: {},
     
-    // สถานะเริ่มต้นของฟอร์มลูกค้า
     isVisible: false,
     isFormVisible: false,
     isSubmitting: false,
     selectedItem: null,
     
-    // ฟังก์ชันจัดการรายการลูกค้า
     setFilters: (filters: Record<string, any>) => set({ filters }),
     
     setItems: (items: Customer[]) => set({ items }),
@@ -42,17 +37,16 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     fetchItems: async () => {
         const { setLoading } = useLoadingStore.getState();
         const { setError } = useErrorStore.getState();
-        console.log("Fetching customers...");
+
         try {
             setLoading(true);
             set({ isLoading: true });
-            console.log("Making API call...");
+
             const data = await customerService.getMany();
             set({ items: data, isLoading: false });
-            console.log("API response:", data);
+
             setLoading(false);
         } catch (error: any) {
-            console.error('Error fetching customers (full):', error);
             set({ isLoading: false });
             setLoading(false);
             setError(error.message || 'Failed to fetch customers');
@@ -67,9 +61,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
         try {
             setLoading(true);
             await customerService.delete(id);
-            set((state) => ({
-                items: state.items.filter((item) => item.CustomerId !== id)
-            }));
+            get().removeItem(id);
             setLoading(false);
         } catch (error: any) {
             setLoading(false);
@@ -79,7 +71,6 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
         }
     },
     
-    // ฟังก์ชันจัดการฟอร์มลูกค้า
     setVisible: (visible: boolean) => set({ isVisible: visible }),
     setFormVisible: (visible: boolean) => set({ isFormVisible: visible }),
     
@@ -93,19 +84,20 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
             set({ isSubmitting: true });
             setLoading(true);
             
-            const result = await customerService.create(data as any);
+            const createResponse = await customerService.create(data as any);
+            const completeItem = await customerService.getOne(createResponse.CustomerId);
             
-            // เพิ่มข้อมูลลูกค้าใหม่ลงในรายการ
-            set((state) => ({
-                items: [...state.items, result],
+            get().addItem(completeItem);
+            
+            set({
                 isSubmitting: false,
                 isVisible: false,
                 isFormVisible: false,
                 selectedItem: null
-            }));
+            });
             
             setLoading(false);
-            return result;
+            return completeItem;
         } catch (error: any) {
             set({ isSubmitting: false });
             setLoading(false);
@@ -123,21 +115,20 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
             set({ isSubmitting: true });
             setLoading(true);
             
-            const result = await customerService.update(id, data as any);
+            await customerService.update(id, data as any);
+            const updatedItem = await customerService.getOne(id);
             
-            // อัปเดตข้อมูลลูกค้าในรายการ
-            set((state) => ({
-                items: state.items.map((item) => 
-                    item.CustomerId === id ? { ...item, ...result } : item
-                ),
+            get().updateItem(id, updatedItem);
+            
+            set({
                 isSubmitting: false,
                 isVisible: false,
                 isFormVisible: false,
                 selectedItem: null
-            }));
+            });
             
             setLoading(false);
-            return result;
+            return updatedItem;
         } catch (error: any) {
             set({ isSubmitting: false });
             setLoading(false);

@@ -1,0 +1,30 @@
+/* src/styles/toast-override.css */
+.Toastify__toast {
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+  
+  .Toastify__toast-body {
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important;
+  }
+  
+  .Toastify__toast--success {
+    background-color: #28c76f !important;
+  }
+  
+  .Toastify__toast--error {
+    background-color: #ea5455 !important;
+  }
+  
+  .Toastify__toast--warning {
+    background-color: #ff9f43 !important;
+  }
+  
+  .Toastify__toast--info {
+    background-color: #00cfe8 !important;
+  }
+  
+  .Toastify__progress-bar {
+    height: 4px !important;
+  }
