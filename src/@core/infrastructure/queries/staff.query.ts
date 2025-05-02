@@ -11,7 +11,7 @@ export const STAFF_QUERY = {
         "Tel", 
         "Address", 
         "userName", 
-        "Position", 
+        // ลบ "Position" ออก
         "Salary",
         "role.id",
         "role.name",
@@ -34,7 +34,7 @@ export const STAFF_QUERY = {
         "Tel", 
         "Address", 
         "userName", 
-        "Position", 
+        // ลบ "Position" ออก
         "Salary",
         "role.id",
         "role.name",
@@ -53,7 +53,7 @@ export const STAFF_QUERY = {
       select: [
         "StaffId", 
         "StaffName", 
-        "Position", 
+        // ลบ "Position" ออก
         "Salary",
         "role.id",
         "role.name"
@@ -69,7 +69,7 @@ export const STAFF_QUERY = {
       select: [
         "StaffId", 
         "StaffName", 
-        "Position",
+        // ลบ "Position" ออก
         "role.name"
       ],
       relations: ["role"],
@@ -83,7 +83,7 @@ export const STAFF_QUERY = {
       select: [
         "StaffId", 
         "StaffName", 
-        "Position",
+        // ลบ "Position" ออก
         "role.name",
         "bookings.BookingId",
         "bookings.BookingDate"

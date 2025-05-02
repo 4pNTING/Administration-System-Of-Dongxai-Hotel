@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 // MUI Imports
 import Box from '@mui/material/Box';
@@ -8,16 +9,16 @@ import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Component Imports
-import { StaffFilter } from "@views/apps/staff/StaffFilter";
-import { StaffRoleFilter } from "@views/apps/staff/StaffRoleFilter";
-import StaffDataTable from "@views/apps/staff/StaffTable";
-import StaffFormInput from "@views/apps/staff/StaffFormInput";
+import { StaffFilter } from '@views/apps/staff/StaffFilter';
+import { StaffRoleFilter } from '@views/apps/staff/StaffRoleFilter';
+import StaffDataTable from '@views/apps/staff/StaffTable';
+import StaffFormInput from '@views/apps/staff/StaffFormInput';
 
 // Store Imports
-import { useStaffStore } from "@core/domain/store/staffs/staff.store";
-import { useAuthStore } from "@/presentation/store/auth.store";
+import { useStaffStore } from '@core/domain/store/staffs/staff.store';
 
 // Helper functions for display text
 const getGenderText = (gender: string) => {
@@ -39,26 +40,45 @@ const getRoleText = (roleId: number) => {
 };
 
 export default function StaffPage() {
-  const { items, fetchItems, isLoading } = useStaffStore();
+  const { items, fetchItems, isLoading: isLoadingStaff } = useStaffStore();
   const [searchValue, setSearchValue] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const { user } = useAuthStore();
   
-  // ดึง roleId จากผู้ใช้ปัจจุบัน
-  const userRoleId = user?.roleId || 0;
+  // ใช้ useSession hook จาก next-auth/react
+  const { data: session, status } = useSession();
+  const isLoadingAuth = status === 'loading';
   
-  // แสดงข้อมูลสำหรับการดีบัก
-  console.log("Current user:", user);
-  console.log("User roleId for permission check:", userRoleId);
+  // ดึง roleId จาก session (ตรวจสอบทั้ง string และ number)
+  const userRoleId = session?.user?.roleId ?  
+    (typeof session.user.roleId === 'string' ? parseInt(session.user.roleId, 10) : session.user.roleId) : 0;
+  
+  // แสดงข้อมูลเพื่อการดีบัก
+  useEffect(() => {
+    console.log('SESSION INFO:', {
+      session,
+      status,
+      userRoleId
+    });
+    
+    // เก็บข้อมูลใน sessionStorage สำหรับคอมโพเนนต์อื่นๆ
+    if (session?.user) {
+      sessionStorage.setItem('user', JSON.stringify({
+        id: session.user.id,
+        userName: session.user.userName,
+        roleId: userRoleId,
+        role: session.user.role
+      }));
+    }
+  }, [session, status, userRoleId]);
   
   // Filtered Items Logic
   const filteredItems = items ? items.filter(staff => {
     const matchesSearch = !searchValue || 
-      String(staff.id).includes(searchValue) || 
-      (staff.name || '').toLowerCase().includes(searchValue.toLowerCase()) ||
+      String(staff.StaffId).includes(searchValue) || 
+      (staff.StaffName || '').toLowerCase().includes(searchValue.toLowerCase()) ||
       (staff.userName || '').toLowerCase().includes(searchValue.toLowerCase());
     
     const matchesRole = !roleFilter || 
@@ -100,12 +120,27 @@ export default function StaffPage() {
     setFormOpen(false);
   };
   
+  // // Show loading state while authentication is being checked
+  // const isLoading = isLoadingAuth || isLoadingStaff;
+  
+  // if (isLoadingAuth) {
+  //   return (
+  //     <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
+  //       <CircularProgress />
+  //       <Typography sx={{ ml: 2 }}>ກຳລັງກວດສອບສິດການໃຊ້ງານ...</Typography>
+  //     </Box>
+  //   );
+  // }
+  
   return (
     <Grid spacing={4} justifyContent="center">
       <Grid item xs={12} md={10} lg={9}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" fontWeight={600}>
             ຈັດການພະນັກງານ
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ສິດການໃຊ້ງານປັດຈຸບັນ: {getRoleText(userRoleId)} (ID: {userRoleId})
           </Typography>
         </Box>
         
@@ -148,9 +183,9 @@ export default function StaffPage() {
         
         <StaffDataTable
           data={filteredItems}
-          loading={isLoading}
+          loading={isLoadingStaff}
           onEdit={handleEdit}
-          currentUserRole={userRoleId}
+          currentUserRole={userRoleId} // ส่ง userRoleId ที่ได้จาก session
         />
         
       </Grid>

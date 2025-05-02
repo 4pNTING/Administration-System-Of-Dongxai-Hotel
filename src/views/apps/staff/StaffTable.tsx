@@ -59,8 +59,7 @@ type StaffWithActionsType = Staff & {
     id: number;
     name: string;
     description?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+
   };
 }
 
@@ -171,19 +170,19 @@ export const StaffDataTable = ({ data, loading = false, onEdit , currentUserRole
 
   const columns = useMemo<ColumnDef<StaffWithActionsType, any>[]>(
     () => [
-      columnHelper.accessor('id', {
+      columnHelper.accessor('StaffId', {
         header: () => <div className='text-center font-medium text-base'>ລຳດັບ</div>,
         cell: ({ row }) => <Typography align='center'>{row.index + 1}</Typography>,
         enableSorting: false
       }),
-      columnHelper.accessor('id', {
+      columnHelper.accessor('StaffId', {
         id: 'staffCode',
         header: () => <div className='text-center font-medium text-base'>ລະຫັດພະນັກງານ</div>,
-        cell: ({ row }) => <Typography align='center'>{formatStaffId(row.original.id)}</Typography>
+        cell: ({ row }) => <Typography align='center'>{formatStaffId(row.original.StaffId)}</Typography>
       }),
-      columnHelper.accessor('name', {
+      columnHelper.accessor('StaffName', {
         header: () => <div className='text-center font-medium text-base'>ຊື່ພະນັກງານ</div>,
-        cell: ({ row }) => <Typography align='center'>{row.original.name}</Typography>
+        cell: ({ row }) => <Typography align='center'>{row.original.StaffName}</Typography>
       }),
       columnHelper.accessor('tel', {
         header: () => <div className='text-center font-medium text-base'>ເບີໂທລະສັບ</div>,

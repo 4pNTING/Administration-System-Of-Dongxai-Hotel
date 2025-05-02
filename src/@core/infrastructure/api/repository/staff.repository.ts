@@ -14,6 +14,7 @@ export class StaffRepository implements StaffRepositoryPort {
     try {
       const query = STAFF_QUERY.LIST.createQuery();
       const response = await api.post<ApiResponse<Staff[]>>(this.URL.GET, query);
+      console.log('Response from server:', response.data.data);
       return response.data.data;
     } catch (error) {
       console.error('Error fetching staffs:', error);
@@ -48,6 +49,19 @@ export class StaffRepository implements StaffRepositoryPort {
       
       // เปลี่ยนจาก PUT เป็น PATCH ตาม controller ในฝั่ง backend
       const response = await api.patch<ApiResponse<Staff>>(this.URL.UPDATE(id), data);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error updating staff:', error);
+      throw error;
+    }
+  }
+
+  async updateNoPassword(id: number, data: Omit<StaffInput, 'password'>): Promise<Staff> {
+    try {
+      console.log('Updating staff without password:', id, 'with data:', data);
+      
+      // ใช้ endpoint พิเศษหรือเพิ่ม query param เพื่อบอก backend ว่าไม่ต้องการอัพเดทรหัสผ่าน
+      const response = await api.patch<ApiResponse<Staff>>(`${this.URL.UPDATE(id)}?skipPassword=true`, data);
       return response.data.data;
     } catch (error) {
       console.error('Error updating staff:', error);

@@ -52,12 +52,12 @@ export const authOptions: NextAuthOptions = {
 
           // ข้อมูลที่จะส่งกลับเข้าสู่ NextAuth
           return {
-            id: String(data.data.user?.id || data.data.id || '1'),
+            id: String(data.data.user?.StaffId || data.data.StaffId || '1'), // แก้ id เป็น StaffId
             name: data.data.user?.userName || data.data.userName || userName,
             email: `${userName}@example.com`, // สร้าง dummy email
             accessToken: data.data.accessToken,
             refreshToken: data.data.refreshToken,
-            role: data.data.user?.role || 'user', // แก้เป็น user.role
+            role: data.data.user?.role || 'user',
             userName: data.data.user?.userName || data.data.userName || userName,
             roleId: data.data.user?.roleId || null
           }
@@ -178,6 +178,7 @@ async function refreshAccessToken(refreshToken: string) {
     }
 
     const data = await response.json();
+    console.log("Login response full structure:", JSON.stringify(data, null, 2));
     
     return {
       accessToken: data.data.accessToken,

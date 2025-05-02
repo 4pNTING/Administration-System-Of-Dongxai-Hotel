@@ -1,5 +1,6 @@
 // src/views/apps/staff/components/StaffActionButtons.tsx
 import React, { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 // MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -32,63 +33,74 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
   const [canEdit, setCanEdit] = useState(false)
   const [canDelete, setCanDelete] = useState(false)
   
+  // ใช้ useSession hook จาก next-auth/react
+  const { data: session } = useSession()
+  
   // ฟังก์ชันสำหรับดึงข้อมูล role จาก session
   const getUserRoleFromSession = (): number => {
     try {
-      // First try to get role from currentUserRole prop
+      // ลำดับการตรวจสอบ:
+      
+      // 1. ตรวจสอบ prop ที่ส่งเข้ามา
       if (currentUserRole !== undefined && currentUserRole > 0) {
-        return currentUserRole;
+        console.log('Using currentUserRole prop:', currentUserRole)
+        return currentUserRole
       }
       
-      // Then try to get role from session storage
-      const sessionData = sessionStorage.getItem('user');
+      // 2. ตรวจสอบจาก next-auth session
+      if (session?.user?.roleId) {
+        const roleId = typeof session.user.roleId === 'string' 
+          ? parseInt(session.user.roleId, 10) 
+          : session.user.roleId
+        console.log('Using roleId from session:', roleId)
+        return roleId
+      }
+      
+      // 3. ตรวจสอบจาก sessionStorage
+      const sessionData = sessionStorage.getItem('user')
       if (sessionData) {
-        const userData = JSON.parse(sessionData);
-        // Make sure we're checking roleId, not role
+        const userData = JSON.parse(sessionData)
         if (userData.roleId && typeof userData.roleId === 'number') {
-          return userData.roleId;
+          console.log('Using roleId from sessionStorage:', userData.roleId)
+          return userData.roleId
         }
       }
       
-      // Finally try auth-storage from localStorage (used by zustand persist)
-      const authStorage = localStorage.getItem('auth-storage');
+      // 4. ตรวจสอบจาก localStorage (zustand persist)
+      const authStorage = localStorage.getItem('auth-storage')
       if (authStorage) {
-        const authData = JSON.parse(authStorage);
-        if (authData.state && authData.state.user && authData.state.user.roleId) {
-          return authData.state.user.roleId;
+        const authData = JSON.parse(authStorage)
+        if (authData.state?.user?.roleId) {
+          console.log('Using roleId from localStorage:', authData.state.user.roleId)
+          return authData.state.user.roleId
         }
       }
       
-      return 0;
+      console.log('No role found, defaulting to 0')
+      return 0
     } catch (error) {
-      console.error('Error getting user role from session:', error);
-      return 0;
+      console.error('Error getting user role from session:', error)
+      return 0
     }
-  };
+  }
   
-  // ตรวจสอบสิทธิ์การแก้ไขและลบเมื่อ component โหลดหรือเมื่อ props เปลี่ยนแปลง
+  // ตรวจสอบสิทธิ์การแก้ไขและลบ
   useEffect(() => {
-    const userRole = getUserRoleFromSession();
+    const userRole = getUserRoleFromSession()
   
-    const isManager = userRole === 4;
-    const isAdmin = userRole === 1;
+    const isManager = userRole === 4
+    const isAdmin = userRole === 1
     
-    // Ensure staff.roleId exists and is a number
-    const staffRoleId = typeof staff.roleId === 'number' ? staff.roleId : 0;
+    // ตรวจสอบค่า staff.roleId
+    const staffRoleId = typeof staff.roleId === 'number' ? staff.roleId : 0
   
-    console.log('Permission check:', {
-      userRoleFromSession: userRole,
-      providedRole: currentUserRole,
-      isManager,
-      isAdmin,
-      staffRoleId,
-    });
   
-    // Admin can edit all, Manager can edit all
-    // For delete, only Manager can delete
-    setCanEdit(isManager || isAdmin);
-    setCanDelete(isManager);
-  }, [staff, currentUserRole]); // Add full staff object to dependencies
+    // กำหนดสิทธิ์: 
+    // - Admin (roleId=1) สามารถแก้ไขได้
+    // - Manager (roleId=4) สามารถแก้ไขและลบได้
+    setCanEdit(isManager || isAdmin)
+    setCanDelete(isManager)
+  }, [staff, currentUserRole, session]) // เพิ่ม session เข้าไปใน dependencies
   
   const handleEdit = () => {
     onEdit(staff)
@@ -101,12 +113,12 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
   const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true)
-      await onDelete(staff.id)
+      await onDelete(staff.StaffId )
       setDeleteDialogOpen(false)
-      toast.success(MESSAGES.SUCCESS.DELETE) // แสดงข้อความสำเร็จเมื่อลบ
+      toast.success(MESSAGES.SUCCESS.DELETE)
     } catch (error) {
       console.error('Error deleting staff:', error)
-      toast.error(MESSAGES.ERROR.DELETE) // แสดงข้อความผิดพลาดเมื่อลบไม่สำเร็จ
+      toast.error(MESSAGES.ERROR.DELETE)
     } finally {
       setIsDeleting(false)
     }
@@ -114,14 +126,14 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
   
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false)
-    toast.info(MESSAGES.SUCCESS.CANCElED) // แสดงข้อความเมื่อยกเลิก
+    toast.info(MESSAGES.SUCCESS.CANCElED)
   }
   
   return (
     <>
       <div className='flex items-center justify-center gap-2'>
         <Tooltip title={canEdit ? 'ແກ້ໄຂ' : 'ບໍ່ມີສິດການແກ້ໄຂ'}>
-          <span> {/* ครอบด้วย span เพื่อให้ Tooltip ทำงานแม้ปุ่มจะถูก disabled */}
+          <span>
             <IconButton
               color='primary'
               onClick={handleEdit}
@@ -138,7 +150,7 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
         </Tooltip>
         
         <Tooltip title={canDelete ? 'ລົບ' : 'ສະເພາະຜູ້ຈັດການເທົ່ານັ້ນທີ່ສາມາດລົບໄດ້'}>
-          <span> {/* ครอบด้วย span เพื่อให้ Tooltip ทำงานแม้ปุ่มจะถูก disabled */}
+          <span>
             <IconButton
               color='error'
               onClick={handleDeleteClick}
@@ -155,7 +167,6 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
         </Tooltip>
       </div>
       
-      {/* Dialog ยืนยันการลบ */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
