@@ -15,7 +15,7 @@ interface AuthState {
   user: {
     id: number;
     userName: string;
-    role: number;
+    roleId: number;
   } | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -33,7 +33,7 @@ interface AuthState {
 }
 
 // Helper function to parse JWT token
-const parseToken = (token: string | null): { id: number; userName: string; role: number } | null => {
+const parseToken = (token: string | null): { id: number; userName: string; roleId: number } | null => {
   if (!token) return null;
   
   try {
@@ -41,7 +41,7 @@ const parseToken = (token: string | null): { id: number; userName: string; role:
     return {
       id: decoded.sub,
       userName: decoded.userName,
-      role: parseInt(decoded.role, 10),
+      roleId: parseInt(decoded.role, 10), // Rename role to roleId
     };
   } catch (error) {
     console.error('Error decoding token:', error);
@@ -77,8 +77,9 @@ export const useAuthStore = create<AuthState>()(
         if (user) {
           set({
             user: {
-              ...user,
-              role: parseInt(user.role, 10), // แปลง role เป็น number
+              id: user.id,
+              userName: user.userName,
+              roleId: parseInt(user.role, 10), // Rename role to roleId
             },
             isAuthenticated: !!user,
           });

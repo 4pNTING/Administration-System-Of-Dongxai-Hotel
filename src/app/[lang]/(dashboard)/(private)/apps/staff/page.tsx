@@ -14,7 +14,7 @@ import { StaffFilter } from "@views/apps/staff/StaffFilter";
 import { StaffRoleFilter } from "@views/apps/staff/StaffRoleFilter";
 import StaffDataTable from "@views/apps/staff/StaffTable";
 import StaffFormInput from "@views/apps/staff/StaffFormInput";
-import StaffDataTableTest from "@views/apps/staff/StaffDataTableTest";
+
 // Store Imports
 import { useStaffStore } from "@core/domain/store/staffs/staff.store";
 import { useAuthStore } from "@/presentation/store/auth.store";
@@ -40,13 +40,20 @@ const getRoleText = (roleId: number) => {
 
 export default function StaffPage() {
   const { items, fetchItems, isLoading } = useStaffStore();
-  console.log("Fetched items:", items);
   const [searchValue, setSearchValue] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const { user } = useAuthStore();
+  
+  // ดึง roleId จากผู้ใช้ปัจจุบัน
+  const userRoleId = user?.roleId || 0;
+  
+  // แสดงข้อมูลสำหรับการดีบัก
+  console.log("Current user:", user);
+  console.log("User roleId for permission check:", userRoleId);
+  
   // Filtered Items Logic
   const filteredItems = items ? items.filter(staff => {
     const matchesSearch = !searchValue || 
@@ -66,9 +73,11 @@ export default function StaffPage() {
   useEffect(() => {
     console.log("Fetching staff items...");
     fetchItems().then(() => {
-      console.log("Fetched items:", items);
+      console.log("Staff items loaded successfully");
+    }).catch(error => {
+      console.error("Error fetching staff items:", error);
     });
-  }, [fetchItems]); // ลบ 'items' ออกจาก dependency array
+  }, [fetchItems]);
   
   // Filter Handlers
   const handleFilterChange = (value: string) => setSearchValue(value);
@@ -92,7 +101,7 @@ export default function StaffPage() {
   };
   
   return (
-    <Grid  spacing={4} justifyContent="center">
+    <Grid spacing={4} justifyContent="center">
       <Grid item xs={12} md={10} lg={9}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="h4" fontWeight={600}>
@@ -141,9 +150,8 @@ export default function StaffPage() {
           data={filteredItems}
           loading={isLoading}
           onEdit={handleEdit}
-          currentUserRole={user?.role}
+          currentUserRole={userRoleId}
         />
-
         
       </Grid>
       

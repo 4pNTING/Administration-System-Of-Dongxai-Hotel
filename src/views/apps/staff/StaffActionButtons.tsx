@@ -1,5 +1,5 @@
 // src/views/apps/staff/components/StaffActionButtons.tsx
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -23,32 +23,72 @@ interface StaffActionButtonsProps {
   staff: Staff
   onEdit: (staff: Staff) => void
   onDelete: (id: number) => Promise<void>
-  currentUserRole?: number // เพิ่ม prop สำหรับตรวจสอบบทบาทผู้ใช้ปัจจุบัน
-  
+  currentUserRole?: number
 }
 
 const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: StaffActionButtonsProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
+  const [canDelete, setCanDelete] = useState(false)
   
-  // ตรวจสอบว่าผู้ใช้ปัจจุบันเป็น Manager (roleId = 4) หรือไม่
-  const isManager = currentUserRole === 4;
-  
-  // ตรวจสอบว่าผู้ใช้ปัจจุบันเป็น Manager หรือมีชื่อบทบาทเป็น "manager"
-  const canEdit = isManager || (
-    staff.role?.name?.toLowerCase() === 'manager' || 
-    getRoleName(staff.roleId).toLowerCase() === 'manager'
-  );
-
-  function getRoleName(roleId: number): string {
-    switch (roleId) {
-      case 1: return 'admin';
-      case 2: return 'receptionist';
-      case 3: return 'staff';
-      case 4: return 'manager';
-      default: return 'unknown';
+  // ฟังก์ชันสำหรับดึงข้อมูล role จาก session
+  const getUserRoleFromSession = (): number => {
+    try {
+      // First try to get role from currentUserRole prop
+      if (currentUserRole !== undefined && currentUserRole > 0) {
+        return currentUserRole;
+      }
+      
+      // Then try to get role from session storage
+      const sessionData = sessionStorage.getItem('user');
+      if (sessionData) {
+        const userData = JSON.parse(sessionData);
+        // Make sure we're checking roleId, not role
+        if (userData.roleId && typeof userData.roleId === 'number') {
+          return userData.roleId;
+        }
+      }
+      
+      // Finally try auth-storage from localStorage (used by zustand persist)
+      const authStorage = localStorage.getItem('auth-storage');
+      if (authStorage) {
+        const authData = JSON.parse(authStorage);
+        if (authData.state && authData.state.user && authData.state.user.roleId) {
+          return authData.state.user.roleId;
+        }
+      }
+      
+      return 0;
+    } catch (error) {
+      console.error('Error getting user role from session:', error);
+      return 0;
     }
-  }
+  };
+  
+  // ตรวจสอบสิทธิ์การแก้ไขและลบเมื่อ component โหลดหรือเมื่อ props เปลี่ยนแปลง
+  useEffect(() => {
+    const userRole = getUserRoleFromSession();
+  
+    const isManager = userRole === 4;
+    const isAdmin = userRole === 1;
+    
+    // Ensure staff.roleId exists and is a number
+    const staffRoleId = typeof staff.roleId === 'number' ? staff.roleId : 0;
+  
+    console.log('Permission check:', {
+      userRoleFromSession: userRole,
+      providedRole: currentUserRole,
+      isManager,
+      isAdmin,
+      staffRoleId,
+    });
+  
+    // Admin can edit all, Manager can edit all
+    // For delete, only Manager can delete
+    setCanEdit(isManager || isAdmin);
+    setCanDelete(isManager);
+  }, [staff, currentUserRole]); // Add full staff object to dependencies
   
   const handleEdit = () => {
     onEdit(staff)
@@ -80,7 +120,7 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
   return (
     <>
       <div className='flex items-center justify-center gap-2'>
-        <Tooltip title={canEdit ? 'ແກ້ໄຂ' : 'ສະເພາະຜູ້ຈັດການເທົ່ານັ້ນ'}>
+        <Tooltip title={canEdit ? 'ແກ້ໄຂ' : 'ບໍ່ມີສິດການແກ້ໄຂ'}>
           <span> {/* ครอบด้วย span เพื่อให้ Tooltip ทำงานแม้ปุ่มจะถูก disabled */}
             <IconButton
               color='primary'
@@ -96,16 +136,25 @@ const StaffActionButtons = ({ staff, onEdit, onDelete, currentUserRole = 0 }: St
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title='ລົບ'>
-          <IconButton
-            color='error'
-            onClick={handleDeleteClick}
-            size='small'
-          >
-            <i className='tabler-trash text-lg' />
-          </IconButton>
+        
+        <Tooltip title={canDelete ? 'ລົບ' : 'ສະເພາະຜູ້ຈັດການເທົ່ານັ້ນທີ່ສາມາດລົບໄດ້'}>
+          <span> {/* ครอบด้วย span เพื่อให้ Tooltip ทำงานแม้ปุ่มจะถูก disabled */}
+            <IconButton
+              color='error'
+              onClick={handleDeleteClick}
+              size='small'
+              disabled={!canDelete}
+              sx={{ 
+                opacity: canDelete ? 1 : 0.5,
+                cursor: canDelete ? 'pointer' : 'not-allowed'
+              }}
+            >
+              <i className='tabler-trash text-lg' />
+            </IconButton>
+          </span>
         </Tooltip>
       </div>
+      
       {/* Dialog ยืนยันการลบ */}
       <Dialog
         open={deleteDialogOpen}
