@@ -48,7 +48,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const data = await res.json();
-          console.log("Login response:", data);
+          // console.log("Login response:", data);
 
           // ข้อมูลที่จะส่งกลับเข้าสู่ NextAuth
           return {

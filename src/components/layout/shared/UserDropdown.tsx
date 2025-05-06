@@ -57,11 +57,13 @@ const UserDropdown = () => {
   const anchorRef = useRef<HTMLDivElement>(null)
 
   // Hooks
+
+  
   const router = useRouter()
   const { data: session } = useSession()
   const { settings } = useSettings()
   const { lang: locale } = useParams()
-  console.log('USER SESSION:', session?.user);
+  console.log('USER SESSIONDropdown:', session?.user);
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
   }
