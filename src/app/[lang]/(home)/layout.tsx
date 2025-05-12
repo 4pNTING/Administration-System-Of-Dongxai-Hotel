@@ -1,5 +1,7 @@
-// Next Imports
+// app/[lang]/(home)/layout.tsx
 import { headers } from 'next/headers'
+import dynamic from 'next/dynamic'
+import Container from '@mui/material/Container'
 
 // Third-party Imports
 import 'react-perfect-scrollbar/dist/css/styles.css'
@@ -9,13 +11,12 @@ import type { ChildrenType } from '@core/types'
 import type { Locale } from '@configs/i18n'
 
 // Component Imports
-import { NextAuthProvider } from '../../../contexts/nextAuthProvider' // Add this import
-
-// HOC Imports
+import CustomerHeader from '@views/apps/components/customer/Header'
+import CustomerFooter from '@views/apps/components/customer/Footer'
+import { SettingsProvider } from '@core/contexts/settingsContext'
+import { NextAuthProvider } from '../../../contexts/nextAuthProvider'
+import ThemeProvider from '../../../examples/menu/ThemeProvider'
 import TranslationWrapper from '@/hocs/TranslationWrapper'
-
-// Config Imports
-import { i18n } from '@configs/i18n'
 
 // Style Imports
 import '@/app/globals.css'
@@ -23,26 +24,44 @@ import '@/app/globals.css'
 // Generated Icon CSS Imports
 import '@assets/iconify-icons/generated-icons.css'
 
-export const metadata = {
-  title: 'Vuexy - MUI Next.js Admin Dashboard Template',
-  description:
-    'Vuexy - MUI Next.js Admin Dashboard Template - is the most developer friendly & highly customizable Admin Dashboard Template based on MUI v5.'
-}
+// Config Imports
+import { i18n } from '@configs/i18n'
 
-const RootLayout = ({ children, params }: ChildrenType & { params: { lang: Locale } }) => {
+// Util Imports
+import { getMode, getSettingsFromCookie, getSystemMode } from '@core/utils/serverHelpers'
+
+// ใช้ dynamic import สำหรับ AppReactToastify
+const AppReactToastify = dynamic(() => import('@/libs/styles/AppReactToastify'), {
+  ssr: false
+})
+
+export default function CustomerHomeLayout({ children, params }: ChildrenType & { params: { lang: Locale } }) {
   // Vars
   const headersList = headers()
   const direction = i18n.langDirection[params.lang]
+  const mode = getMode()
+  const settingsCookie = getSettingsFromCookie()
+  const systemMode = getSystemMode()
 
   return (
     <TranslationWrapper headersList={headersList} lang={params.lang}>
-      <html id='__next' lang={params.lang} dir={direction}>
-        <body className='flex is-full min-bs-full flex-auto flex-col'>
-          <NextAuthProvider>{children}</NextAuthProvider>
-        </body>
-      </html>
+      <NextAuthProvider>
+        <SettingsProvider settingsCookie={settingsCookie} mode={mode}>
+          <ThemeProvider direction={direction}>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <CustomerHeader />
+              <main style={{ flexGrow: 1 }}>
+                {/* ใช้ Container เหมือนกับที่ใช้ใน Header */}
+                <Container maxWidth="xl" sx={{ py: 6 }}>
+                  {children}
+                </Container>
+              </main>
+              <CustomerFooter />
+            </div>
+            <AppReactToastify direction={direction} />
+          </ThemeProvider>
+        </SettingsProvider>
+      </NextAuthProvider>
     </TranslationWrapper>
   )
 }
-
-export default RootLayout

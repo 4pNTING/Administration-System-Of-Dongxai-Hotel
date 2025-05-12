@@ -1,8 +1,8 @@
-// Component Imports
-import AcademyDashboard from '../../apps/academy/dashboard/page'
+// // Component Imports
+// import AcademyDashboard from '../../apps/academy/dashboard/page'
 
-const DashboardAcademy = async () => {
-  return <AcademyDashboard />
-}
+// const DashboardAcademy = async () => {
+//   return <AcademyDashboard />
+// }
 
-export default DashboardAcademy
+// export default DashboardAcademy

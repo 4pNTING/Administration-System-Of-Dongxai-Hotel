@@ -20,7 +20,7 @@ import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
 
 // Third-party Imports
-import { signIn,getSession  } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { object, minLength, string, pipe, nonEmpty } from 'valibot'
@@ -86,7 +86,7 @@ const schema = object({
   )
 })
 
-const Login = ({ mode }: { mode: SystemMode }) => {
+const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [errorState, setErrorState] = useState<ErrorType | null>(null)
@@ -133,15 +133,15 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 
   // ฟังก์ชัน onSubmit ใช้ NextAuth
 
-// app/[lang]/login/page.tsx หรือไฟล์ Login.tsx ที่มีอยู่แล้ว
 const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
   try {
-    // ตัด whitespace ของ userName
+    // ตัด whitespace ทั้งหมดที่อยู่ด้านหน้าและด้านหลัง userName
     const trimmedUserName = data.userName.trim();
     
     console.log("Attempting login with:", { userName: trimmedUserName, password: data.password });
     
     const res = await signIn('credentials', {
+      // ส่ง userName ที่ trim แล้ว
       userName: trimmedUserName,
       password: data.password,
       redirect: false
@@ -150,23 +150,11 @@ const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
     console.log("Login response:", res);
 
     if (res && res.ok && !res.error) {
-      // ดึงข้อมูล session เพื่อตรวจสอบประเภทผู้ใช้
-      const session = await getSession();
-      
-      // กำหนดหน้าที่จะนำทางไปตามประเภทผู้ใช้
-      let redirectURL;
-      
-      if (session?.user?.type === 'customer') {
-        // ถ้าเป็น customer นำทางไปยังหน้า home
-        redirectURL = '/home';
-      } else {
-        // ถ้าเป็น staff หรือประเภทอื่น นำทางไปยังหน้า dashboard
-        redirectURL = APP_ROUTES.DASHBOARD_ROUTE;
-      }
-      
+      // Successful login
+      const redirectURL = searchParams.get('redirect') || APP_ROUTES.DASHBOARD_ROUTE;
       router.replace(getLocalizedUrl(redirectURL, locale as Locale));
     } else {
-      // จัดการกรณีเกิดข้อผิดพลาด
+      // Handle error
       if (res?.error) {
         try {
           const error = JSON.parse(res.error);
@@ -180,7 +168,7 @@ const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
     console.error('Login error:', error);
     setErrorState({ message: ['An unexpected error occurred'] });
   }
-}
+  }
 
   return (
     <div className='flex bs-full justify-center'>
@@ -297,4 +285,4 @@ const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
   )
 }
 
-export default Login
+export default LoginV2

@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         try {
           console.log("Authenticating user:", userName);
           console.log("Backend API URL:", process.env.NEXT_PUBLIC_BACKEND_API_URL);
-          
+
           // ใช้ NEXT_PUBLIC_BACKEND_API_URL แทน API_URL เพื่อเชื่อมต่อกับ backend โดยตรง
           const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login`, {
             method: 'POST',
@@ -37,29 +37,47 @@ export const authOptions: NextAuthOptions = {
           if (!res.ok) {
             const contentType = res.headers.get('content-type');
             let errorMessage = 'Authentication failed';
-            
+
             if (contentType?.includes('application/json')) {
               const errorData = await res.json();
               console.log("Login error data:", errorData);
               errorMessage = errorData.message || 'Invalid credentials';
             }
-            
+
             throw new Error(JSON.stringify({ message: [errorMessage] }));
           }
 
           const data = await res.json();
-          // console.log("Login response:", data);
+          console.log("Login response:", data);
+
+          // ตรวจสอบประเภทผู้ใช้จาก response
+          // หากในข้อมูลไม่มีฟิลด์ type ให้ดูจากฟิลด์อื่นๆ เช่น user ID
+          // เช่น ถ้ามี StaffId จะถือว่าเป็น staff, ถ้ามี CustomerId จะถือว่าเป็น customer
+          let userType;
+
+          if (data.data.user?.type) {
+            userType = data.data.user.type;
+          } else if (data.data.type) {
+            userType = data.data.type;
+          } else if (data.data.user?.StaffId || data.data.StaffId) {
+            userType = 'staff';
+          } else if (data.data.user?.CustomerId || data.data.CustomerId) {
+            userType = 'customer';
+          } else {
+            userType = 'staff'; // ค่าเริ่มต้นหากไม่สามารถระบุประเภทได้
+          }
 
           // ข้อมูลที่จะส่งกลับเข้าสู่ NextAuth
           return {
-            id: String(data.data.user?.StaffId || data.data.StaffId || '1'), // แก้ id เป็น StaffId
+            id: String(data.data.user?.id || data.data.user?.StaffId || data.data.StaffId || '1'),
             name: data.data.user?.userName || data.data.userName || userName,
-            email: `${userName}@example.com`, // สร้าง dummy email
+            email: `${userName}@example.com`,
             accessToken: data.data.accessToken,
             refreshToken: data.data.refreshToken,
             role: data.data.user?.role || 'user',
             userName: data.data.user?.userName || data.data.userName || userName,
-            roleId: data.data.user?.roleId || null
+            roleId: data.data.user?.roleId || null,
+            type: userType // เพิ่มข้อมูลประเภทผู้ใช้
           }
         } catch (e: any) {
           console.error("Login error:", e);
@@ -94,6 +112,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.roleId = user.roleId;
         token.userName = user.userName;
+        token.type = user.type;
       }
 
       // ตรวจสอบว่า token ใกล้หมดอายุหรือไม่ (ถ้าต้องการทำ refresh token)
@@ -116,7 +135,7 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
-    
+
     async session({ session, token }) {
       if (session.user) {
         session.user.accessToken = token.accessToken as string;
@@ -125,6 +144,7 @@ export const authOptions: NextAuthOptions = {
         session.user.userName = token.userName as string;
         session.user.id = token.sub as string;
         session.user.roleId = token.roleId as number | null;
+        session.user.type = token.type as string; 
       }
 
       return session;
@@ -179,7 +199,7 @@ async function refreshAccessToken(refreshToken: string) {
 
     const data = await response.json();
     console.log("Login response full structure:", JSON.stringify(data, null, 2));
-    
+
     return {
       accessToken: data.data.accessToken,
       refreshToken: data.data.refreshToken,
@@ -198,12 +218,13 @@ declare module "next-auth" {
       id: string;
       name?: string | null;
       email?: string | null;
-       image?: string | null;
+      image?: string | null;
       accessToken?: string;
       refreshToken?: string;
       role?: string;
       roleId?: number | null;
       userName?: string;
+      type?: string;
     }
   }
 
@@ -211,12 +232,13 @@ declare module "next-auth" {
     id: string;
     name?: string | null;
     email?: string | null;
-     image?: string | null;
+    image?: string | null;
     accessToken?: string;
     refreshToken?: string;
     role?: string;
     userName?: string;
     roleId?: number | null;
+    type?: string;
   }
 }
 
@@ -227,6 +249,7 @@ declare module "next-auth/jwt" {
     role?: string;
     roleId?: number | null;
     userName?: string;
+    type?: string;
     exp?: number;
     error?: string;
   }

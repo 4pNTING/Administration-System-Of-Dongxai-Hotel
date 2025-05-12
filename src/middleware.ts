@@ -8,22 +8,29 @@ export default withAuth(
     const pathname = req.nextUrl.pathname;
     const token = req.nextauth.token;
     
-    console.log("Checking permissions for:", pathname);
-    console.log("User role:", token?.role);
+    console.log("MIDDLEWARE - Checking permissions for:", pathname);
+    console.log("MIDDLEWARE - User role:", token?.role);
     
     // แปลง token.role เป็นตัวพิมพ์เล็กและ cast เป็น RoleType
     const userRole = (token?.role || '').toLowerCase() as RoleType;
     
     // ตรวจสอบสิทธิ์ตามบทบาท
-    if (pathname.startsWith("/admin") && userRole !== ROLES.ADMIN) {
+    if (pathname.includes("/admin") && userRole !== ROLES.ADMIN) {
+      console.log("MIDDLEWARE - Access denied to admin route");
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
     
-    // แก้ไขโดยใช้ condition แบบอื่นแทน includes
-    if (pathname.startsWith("/dashboards") && 
+    if (pathname.includes("/dashboards") && 
         userRole !== ROLES.ADMIN && 
         userRole !== ROLES.MANAGER && 
         userRole !== ROLES.STAFF) {
+      console.log("MIDDLEWARE - Access denied to staff route");
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+    
+    // ตรวจสอบเส้นทาง my-bookings สำหรับ customer
+    if (pathname.includes("/my-bookings") && userRole !== ROLES.CUSTOMER) {
+      console.log("MIDDLEWARE - Access denied to customer route");
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
   },
@@ -34,12 +41,15 @@ export default withAuth(
   }
 );
 
+// เลือกเส้นทางที่ต้องการตรวจสอบอย่างเฉพาะเจาะจง
 export const config = {
   matcher: [
     "/dashboards/:path*",
     "/admin/:path*",
     "/customers/:path*",
     "/rooms/:path*",
-    "/bookings/:path*"
+    "/bookings/:path*",
+    "/my-bookings/:path*",
+    "/profile/:path*"
   ]
 };
