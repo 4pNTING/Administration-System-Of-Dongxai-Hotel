@@ -130,7 +130,7 @@ const userRoleObj: UserRoleType = {
   author: { icon: 'tabler-device-desktop', color: 'warning' },
   editor: { icon: 'tabler-edit', color: 'info' },
   maintainer: { icon: 'tabler-chart-pie', color: 'success' },
-  subscriber: { icon: 'tabler-user', color: 'primary' }
+  subscriber: { icon: 'tabler-user', color: 'primarcy' }
 }
 
 const userStatusObj: UserStatusType = {

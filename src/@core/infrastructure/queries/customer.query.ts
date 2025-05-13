@@ -12,7 +12,8 @@ export const CUSTOMER_QUERY = {
                 "CustomerAddress",
                 "CustomerPostcode",
                 "createdAt",
-                "updatedAt"
+                "updatedAt",
+                "roldId"
             ],
             filter: filter,
             getType: "many"
