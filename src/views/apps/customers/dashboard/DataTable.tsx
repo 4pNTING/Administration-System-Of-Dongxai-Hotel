@@ -15,7 +15,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import type { TextFieldProps } from '@mui/material/TextField'
-
+import { Customer } from '@core/domain/models/customer/list.model'
 // Third-party Imports
 import classnames from 'classnames'
 import { rankItem } from '@tanstack/match-sorter-utils'
@@ -114,7 +114,7 @@ const columnHelper = createColumnHelper<CustomerData>()
 interface CustomerDataTableProps {
   data: any; // Use any type to accept any data format
   filters?: Record<string, any>;
-  onEdit: (customer: CustomerData) => void;
+  onEdit: (customer: Customer) => void; 
   onDelete?: (id: number) => void;
   loading?: boolean;
   currentUserRole?: number;

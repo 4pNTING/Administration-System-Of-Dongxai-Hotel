@@ -105,11 +105,12 @@ export interface RoomDataTableProps {
   data: Room[]
   loading?: boolean
   onEdit: (item: Room) => void
+  currentUserRole?: number // เพิ่มเหมือน Staff
 }
 
-export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTableProps) => {
+export const RoomDataTable = ({ data, loading = false, onEdit, currentUserRole = 0 }: RoomDataTableProps) => {
   // States
-  const { delete: deleteRoom ,fetchItems } = useRoomStore()
+  const { delete: deleteRoom, fetchItems, isLoading } = useRoomStore() // เพิ่ม isLoading เข้ามา
   const [rowSelection, setRowSelection] = useState({})
   const [filteredData, setFilteredData] = useState(data)
   const [globalFilter, setGlobalFilter] = useState('')
@@ -120,16 +121,12 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
   }, [data])
 
   const handleDelete = async (id: number) => {
-   
-      try {
-        await deleteRoom(id);
-        await fetchItems();
-
-      } catch (error) {
-        // Error message would go here
-        console.error('Error deleting room:', error)
-      }
-    
+    try {
+      await deleteRoom(id);
+      await fetchItems();
+    } catch (error) {
+      console.error('Error deleting room:', error)
+    }
   }
 
   const formatRoomId = (id: number): string => {
@@ -149,7 +146,7 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
   const columns = useMemo<ColumnDef<RoomWithActionsType, any>[]>(
     () => [
       columnHelper.accessor('RoomId', {
-        header: () => <div className='text-center font-medium text-base' >ລຳດັບ</div>,
+        header: () => <div className='text-center font-medium text-base'>ລຳດັບ</div>,
         cell: ({ row }) => <Typography align='center'>{row.index + 1}</Typography>,
         enableSorting: false
       }),
@@ -180,14 +177,15 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
           <RoomActionButtons 
             room={row.original} 
             onEdit={onEdit} 
-            onDelete={handleDelete} 
+            onDelete={handleDelete}
+            currentUserRole={currentUserRole} // ส่งสิทธิ์ผู้ใช้ไปยัง component
           />
         ),
         enableSorting: false
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredData]
+    [filteredData, currentUserRole]
   )
 
   const table = useReactTable({
@@ -202,7 +200,7 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
     },
     initialState: {
       pagination: {
-        pageSize: 25
+        pageSize: 10 // เพิ่มจำนวนแถวต่อหน้าเป็น 25 เหมือน Staff
       }
     },
     enableRowSelection: true,
@@ -217,6 +215,9 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   })
+
+  // ใช้สถานะการโหลดจาก store แทน prop
+  const showLoading = loading || isLoading;
 
   return (
     <Card>
@@ -250,7 +251,7 @@ export const RoomDataTable = ({ data, loading = false, onEdit }: RoomDataTablePr
               </tr>
             ))}
           </thead>
-          {loading ? (
+          {showLoading ? (
             <tbody>
               <tr>
                 <td colSpan={table.getVisibleFlatColumns().length} className='text-center py-10'>

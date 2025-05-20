@@ -1,111 +1,140 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 // MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
-import Box from '@mui/material/Box'
-
-import Divider from '@mui/material/Divider'
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import AddIcon from '@mui/icons-material/Add';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Component Imports
-import CustomerDataTable from '@views/apps/customers/dashboard/DataTable'
-import CustomerFormInput from '@views/apps/customers/dashboard/FormInput'
-import CustomerFilter from '@views/apps/customers/dashboard/TableFilter'
-
-import GenderFilterDropdown from '@views/apps/customers/dashboard/GenderFilterDropdown'
+import CustomerFilter from '@views/apps/customers/dashboard/TableFilter';
+import GenderFilterDropdown from '@views/apps/customers/dashboard/GenderFilterDropdown';
+import CustomerDataTable from '@views/apps/customers/dashboard/DataTable';
+import CustomerFormInput from '@views/apps/customers/dashboard/FormInput';
 
 // Store Imports
-import { useCustomerStore } from '@core/domain/store/customer/customer.store'
-import { Customer } from '@core/domain/models/customer/list.model'
+import { useCustomerStore } from '@core/domain/store/customer/customer.store';
+import { Customer } from '@core/domain/models/customer/list.model';
 
-export interface GenderFilterProps {
-  onGenderChange: (gender: string | null) => void
-}
-
-const CustomerPage = () => {
-  const { items, fetchItems, isLoading } = useCustomerStore()
-  const [filters, setFilters] = useState<Record<string, any>>({
-    global: { value: null, matchMode: 'contains' }
-  })
-  const [visible, setVisible] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<Customer | null>(null)
-  const [filteredItems, setFilteredItems] = useState<Customer[]>([])
-  const [selectedGender, setSelectedGender] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchItems()
-  }, [fetchItems])
-
-  useEffect(() => {
-    if (items) {
-      console.log('Fetched items:', items)
-      if (selectedGender === null) {
-        setFilteredItems(items)
-      } else {
-        const filtered = items.filter((item) => item.CustomerGender === selectedGender)
-        setFilteredItems(filtered)
-      }
-    }
-  }, [items, selectedGender])
-
-  const onGlobalFilterChange = (value: string) => {
-    const _filters = { ...filters }
-    ;(_filters['global'] as any).value = value
-    setFilters(_filters)
+// Helper functions for display text
+const getGenderText = (gender: string) => {
+  switch (gender?.toUpperCase()) {
+    case 'MALE': 
+    case 'ชาย': return 'ຊາຍ';
+    case 'FEMALE': 
+    case 'ຍິງ': return 'ຍິງ';
+    default: return 'ອື່ນໆ';
   }
+};
 
-  const handleGenderChange = (gender: string | null) => {
-    setSelectedGender(gender)
-  }
-
+export default function CustomerPage() {
+  const { items, fetchItems, isLoading } = useCustomerStore();
+  const [searchValue, setSearchValue] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Customer | null>(null);
+  
+  // Filtered Items Logic
+  const filteredItems = items ? items.filter(customer => {
+    const matchesSearch = !searchValue || 
+      String(customer.CustomerId).includes(searchValue) || 
+      (customer.CustomerName || '').toLowerCase().includes(searchValue.toLowerCase());
+    
+    const matchesGender = !genderFilter || 
+      (getGenderText(customer.CustomerGender) || '') === genderFilter;
+    
+    return matchesSearch && matchesGender;
+  }) : [];
+  
+  useEffect(() => {
+    console.log("Fetching customer items...");
+    fetchItems().then(() => {
+      console.log("Customer items loaded successfully");
+    }).catch(error => {
+      console.error("Error fetching customer items:", error);
+    });
+  }, [fetchItems]);
+  
+  // Filter Handlers
+  const handleFilterChange = (value: string) => setSearchValue(value);
+  const handleGenderFilterChange = (value: string) => setGenderFilter(value);
+  
+  // Form Handlers
   const handleCreate = () => {
-    setSelectedItem(null)
-    setVisible(true)
-  }
-
+    setSelectedItem(null);
+    setFormOpen(true);
+  };
+  
   const handleEdit = (item: Customer) => {
-    setSelectedItem(item)
-    setVisible(true)
-  }
-
-  const handleHide = () => {
-    setSelectedItem(null)
-    setVisible(false)
-  }
-
+    setSelectedItem(item);
+    setFormOpen(true);
+  };
+  
+  const handleFormClose = () => {
+    setSelectedItem(null);
+    setFormOpen(false);
+  };
+  
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant='h5'>ข้อมูลลูกค้า</Typography>
-         
+    <Grid spacing={4} justifyContent="center">
+      <Grid item xs={12} md={10} lg={9}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" fontWeight={600}>
+            ຈັດການລູກຄ້າ
+          </Typography>
         </Box>
-
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 3, mb: 3 }}>
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
-                <GenderFilterDropdown onGenderChange={handleGenderChange} />
-                <CustomerFilter value={(filters.global as any)?.value || ''} onFilterChange={onGlobalFilterChange} />
-              </Box>
-              <Button variant='contained'  onClick={handleCreate}>
-                สร้างใหม่
-              </Button>
-            </Box>
-            <Divider sx={{ my: 3 }} />
-            <CustomerDataTable data={filteredItems} filters={filters} onEdit={handleEdit} loading={isLoading} />
-          </CardContent>
-        </Card>
+        
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            justifyContent: 'space-between',
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, flexGrow: 1 }}>
+            <CustomerFilter
+              value={searchValue}
+              onFilterChange={handleFilterChange}
+            />
+            <GenderFilterDropdown
+              onGenderChange={handleGenderFilterChange}
+            />
+          </Box>
+          
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreate}
+            sx={{
+              height: 'fit-content',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            ເພິ່ມລູກຄ້າ
+          </Button>
+        </Box>
+        
+        <CustomerDataTable
+          data={filteredItems}
+          loading={isLoading}
+          onEdit={handleEdit}
+        />
+        
       </Grid>
-
-      <CustomerFormInput visible={visible} onHide={handleHide} selectedItem={selectedItem} />
+      
+      <CustomerFormInput
+        visible={formOpen}
+        onHide={handleFormClose}
+        selectedItem={selectedItem}
+      />
     </Grid>
-  )
+  );
 }
-
-export default CustomerPage

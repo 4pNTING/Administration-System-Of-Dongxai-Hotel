@@ -1,3 +1,4 @@
+// src/views/apps/booking/components/BookingActionButtons.tsx
 import React, { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
@@ -13,20 +14,20 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 
 // Type Imports
-import { Room } from '@core/domain/models/rooms/list.model'
+import { Booking } from '@core/domain/models/booking/list.model'
 
 // Toast Import
 import { toast } from 'react-toastify'
 import { MESSAGES } from '../../../../libs/constants/messages.constant'
 
-interface RoomActionButtonsProps {
-  room: Room
-  onEdit: (room: Room) => void
+interface BookingActionButtonsProps {
+  booking: Booking
+  onEdit: (booking: Booking) => void
   onDelete: (id: number) => Promise<void>
   currentUserRole?: number
 }
 
-const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: RoomActionButtonsProps) => {
+const BookingActionButtons = ({ booking, onEdit, onDelete, currentUserRole = 0 }: BookingActionButtonsProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
@@ -35,7 +36,7 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
   // ใช้ useSession hook จาก next-auth/react
   const { data: session } = useSession()
   
-  // ฟังก์ชันสำหรับดึงข้อมูล role จาก session เหมือนกับ StaffActionButtons
+  // ฟังก์ชันสำหรับดึงข้อมูล role จาก session
   const getUserRoleFromSession = (): number => {
     try {
       // 1. ตรวจสอบ prop ที่ส่งเข้ามา
@@ -82,16 +83,18 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
   
     const isManager = userRole === 4
     const isAdmin = userRole === 1
+    const isReceptionist = userRole === 2
   
     // กำหนดสิทธิ์: 
-    // - Admin (roleId=1) สามารถแก้ไขได้
+    // - Admin (roleId=1) สามารถแก้ไขและลบได้
     // - Manager (roleId=4) สามารถแก้ไขและลบได้
-    setCanEdit(isManager || isAdmin)
-    setCanDelete(isManager)
-  }, [room, currentUserRole, session]) // เพิ่ม session เข้าไปใน dependencies
+    // - Receptionist (roleId=2) สามารถแก้ไขได้แต่ลบไม่ได้
+    setCanEdit(isManager || isAdmin || isReceptionist)
+    setCanDelete(isManager || isAdmin)
+  }, [booking, currentUserRole, session]) // เพิ่ม session เข้าไปใน dependencies
   
   const handleEdit = () => {
-    onEdit(room)
+    onEdit(booking)
   }
   
   const handleDeleteClick = () => {
@@ -101,11 +104,11 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
   const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true)
-      await onDelete(room.RoomId)
+      await onDelete(booking.BookingId)
       setDeleteDialogOpen(false)
       toast.success(MESSAGES.SUCCESS.DELETE)
     } catch (error) {
-      console.error('Error deleting room:', error)
+      console.error('Error deleting booking:', error)
       toast.error(MESSAGES.ERROR.DELETE)
     } finally {
       setIsDeleting(false)
@@ -137,7 +140,7 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
           </span>
         </Tooltip>
         
-        <Tooltip title={canDelete ? 'ລົບ' : 'ສະເພາະຜູ້ຈັດການເທົ່ານັ້ນທີ່ສາມາດລົບໄດ້'}>
+        <Tooltip title={canDelete ? 'ລົບ' : 'ບໍ່ມີສິດການລົບ'}>
           <span>
             <IconButton
               color='error'
@@ -159,10 +162,10 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
       >
-        <DialogTitle>ຢືນຢັນການລົບຫ້ອງພັກ</DialogTitle>
+        <DialogTitle>ຢືນຢັນການລົບການຈອງ</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບຫ້ອງພັກນີ້? ການກະທຳນີ້ບໍ່ສາມາດຍ້ອນກັບໄດ້.
+            ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບການຈອງນີ້? ການກະທຳນີ້ບໍ່ສາມາດຍ້ອນກັບໄດ້.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -187,4 +190,4 @@ const RoomActionButtons = ({ room, onEdit, onDelete, currentUserRole = 0 }: Room
   )
 }
 
-export default RoomActionButtons
+export default BookingActionButtons

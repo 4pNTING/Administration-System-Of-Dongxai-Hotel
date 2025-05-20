@@ -1,3 +1,4 @@
+// src/core/infrastructure/api/config/endpoints.config.ts
 const ENDPOINTS = {
     AUTH: {
         BASE_URL: '/auth' as const,
@@ -58,6 +59,14 @@ const ENDPOINTS = {
             return `${this.BASE_URL}/${id}/status/${status}`
         }
     },
+    BOOKING_STATUS: {
+        BASE_URL: '/booking-statuses' as const,
+        get GET() { return `${this.BASE_URL}/query` },
+        get CREATE() { return `${this.BASE_URL}/create` },
+        DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
+        UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
+        DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
+    },
     PAYMENT: {
         BASE_URL: '/payments' as const,
         get GET() { return `${this.BASE_URL}/query` },
@@ -82,6 +91,7 @@ export const {
     ROOM_TYPE: ROOM_TYPE_ENDPOINTS,
     ROOM_STATUS: ROOM_STATUS_ENDPOINTS,
     BOOKING: BOOKING_ENDPOINTS,
+    BOOKING_STATUS: BOOKING_STATUS_ENDPOINTS,
     PAYMENT: PAYMENT_ENDPOINTS,
     DASHBOARD: DASHBOARD_ENDPOINTS
 } = ENDPOINTS;

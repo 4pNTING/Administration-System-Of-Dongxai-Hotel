@@ -1,5 +1,4 @@
 // src/presentation/config/app-routes.config.ts
-
 const createRoutes = (baseUrl: string) => ({
   BASE_URL: baseUrl,
   LIST: `${baseUrl}/list`,
@@ -15,6 +14,7 @@ export const APP_ROUTES = {
   ROOM_ROUTE: createRoutes('/rooms'),
   ROOM_TYPE_ROUTE: createRoutes('/room-types'),
   BOOKING_ROUTE: createRoutes('/bookings'),
+  BOOKING_STATUS_ROUTE: createRoutes('/booking-statuses'),
   PAYMENT_ROUTE: createRoutes('/payments'),
   REPORT_ROUTE: {
     BASE_URL: '/reports',
@@ -44,6 +44,7 @@ export const {
   ROOM_ROUTE,
   ROOM_TYPE_ROUTE,
   BOOKING_ROUTE,
+  BOOKING_STATUS_ROUTE,
   PAYMENT_ROUTE,
   REPORT_ROUTE,
   SETTINGS_ROUTE,

@@ -1,6 +1,7 @@
 
 // src/core/domain/models/staffs/list.model.ts
 export interface Staff {
+  id: number;
   StaffId: number;
   StaffName: string;
   tel: number;

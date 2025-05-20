@@ -17,17 +17,17 @@ const GenderFilterDropdown = ({ onGenderChange }: GenderFilterProps) => {
 
   return (
     <FormControl sx={{ minWidth: { xs: '100%', md: 200 } }} size="small">
-      <InputLabel id="gender-filter-label">เพศ</InputLabel>
+      <InputLabel id="gender-filter-label">ເພດ</InputLabel>
       <Select
         labelId="gender-filter-label"
         id="gender-filter"
         defaultValue="all"
-        label="เพศ"
+        label="ເພດ"
         onChange={handleChange}
       >
-        <MenuItem value="all">ทั้งหมด</MenuItem>
-        <MenuItem value="ชาย">ชาย</MenuItem>
-        <MenuItem value="หญิง">หญิง</MenuItem>
+        <MenuItem value="all">ທັງໝົດ</MenuItem>
+        <MenuItem value="ຊາຍ">ຊາຍ</MenuItem>
+        <MenuItem value="ຍິງ">ຍິງ</MenuItem>
       </Select>
     </FormControl>
   )
