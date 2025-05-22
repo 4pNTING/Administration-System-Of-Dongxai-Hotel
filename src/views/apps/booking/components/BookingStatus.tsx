@@ -3,7 +3,10 @@ import React from 'react';
 import Chip from '@mui/material/Chip';
 
 interface BookingStatusChipProps {
-  status: any; // status object from the booking
+  status: {
+    StatusId: number;
+    StatusName?: string;
+  };
 }
 
 const BookingStatusChip: React.FC<BookingStatusChipProps> = ({ status }) => {
@@ -18,13 +21,13 @@ const BookingStatusChip: React.FC<BookingStatusChipProps> = ({ status }) => {
   let chipColor: 'success' | 'warning' | 'error' | 'info' | 'default' = 'default';
   
   // ตรวจสอบสถานะและกำหนดสี
-  if (statusName.includes('ຢືນຢັນ') || statusName.includes('confirmed')) {
+  if (status.StatusId === 3 || statusName.includes('ຊຳລະແລ້ວ') || statusName.includes('confirmed')) {
     chipColor = 'success';
-  } else if (statusName.includes('ລໍຖ້າ') || statusName.includes('pending')) {
+  } else if (status.StatusId === 1 || statusName.includes('ຮອດຳເນີນການ') || statusName.includes('pending')) {
     chipColor = 'warning';
-  } else if (statusName.includes('ຍົກເລີກ') || statusName.includes('cancel')) {
+  } else if (status.StatusId === 4 || statusName.includes('ຍົກເລີກ') || statusName.includes('cancel')) {
     chipColor = 'error';
-  } else if (statusName.includes('ກຳລັງພັກ') || statusName.includes('staying')) {
+  } else if (status.StatusId === 2 || statusName.includes('ກຳລັງພັກ') || statusName.includes('staying')) {
     chipColor = 'info';
   }
 

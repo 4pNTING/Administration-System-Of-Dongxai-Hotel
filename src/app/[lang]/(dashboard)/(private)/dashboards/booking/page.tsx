@@ -1,350 +1,229 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 
 // MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
-import Box from '@mui/material/Box'
-import Divider from '@mui/material/Divider'
-import CardHeader from '@mui/material/CardHeader'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import AddIcon from '@mui/icons-material/Add'
-import Alert from '@mui/material/Alert'
-import CircularProgress from '@mui/material/CircularProgress'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
-import InputAdornment from '@mui/material/InputAdornment'
-
-// Icon Imports
-import SearchIcon from '@mui/icons-material/Search'
-import FilterListIcon from '@mui/icons-material/FilterList'
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import AddIcon from '@mui/icons-material/Add';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Component Imports
-import BookingDataTable from '@views/apps/booking/RoomTable'
-import BookingFormInput from '@views/apps/booking/components/BookingFormInput'
-import BookingStatusChip from '@views/apps/booking/components/BookingStatus'
+import { BookingSeach } from '@/views/apps/booking/BookingSeach';
+import { BookingStatusFilter } from '@views/apps/booking/components/BookingStatusFilter';
+import BookingTable from '@views/apps/booking/BookingTable';
+import BookingFormInput from '@views/apps/booking/components/BookingFormInput';
 
 // Store Imports
-import { useBookingStore } from '@core/domain/store/booking/booking.store'
-import { useBookingStatusStore } from '@core/domain/store/booking/booking-status.store'
-import { Booking } from '@core/domain/models/booking/list.model'
+import { useBookingStore } from '@core/domain/store/booking/booking.store';
+import { useBookingStatusStore } from '@core/domain/store/booking/booking-status.store';
+import { Booking } from '@core/domain/models/booking/list.model';
 
-// Function to render TabPanel content
-function TabPanel(props: {
-  children?: React.ReactNode
-  index: number
-  value: number
-}) {
-  const { children, value, index, ...other } = props
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ pt: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  )
-}
-
-const BookingPage = () => {
-  const { 
-    items: bookings, 
-    fetchItems: fetchBookings, 
-    isLoading, 
-    isSubmitting
-  } = useBookingStore()
+export default function BookingPage() {
+  const { items, fetchItems, confirmBooking, isLoading: isLoadingBooking } = useBookingStore();
+  const { bookingStatuses, fetchBookingStatuses, isLoading: isLoadingStatus } = useBookingStatusStore();
   
-  const {
-    bookingStatuses,
-    fetchBookingStatuses
-  } = useBookingStatusStore()
+  const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [confirmingBooking, setConfirmingBooking] = useState(false);
   
-  const [tabValue, setTabValue] = useState(0)
-  const [statusFilter, setStatusFilter] = useState<number | string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [visible, setVisible] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<Booking | null>(null)
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  // ดึงข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoadError(null)
-        await fetchBookings()
-        await fetchBookingStatuses()
-      } catch (error) {
-        console.error("Failed to load booking data:", error)
-        setLoadError(error instanceof Error ? error.message : 'Failed to load booking data')
-      }
-    }
+  // Use useSession hook from next-auth/react
+  const { data: session, status } = useSession();
+  const isLoadingAuth = status === 'loading';
+  
+  // Get roleId from session (check both string and number)
+  const userRoleId = session?.user?.roleId ?  
+    (typeof session.user.roleId === 'string' ? parseInt(session.user.roleId, 10) : session.user.roleId) : 0;
+  
+  const handleConfirmBooking = async (booking: Booking) => {
+  try {
+    setConfirmingBooking(true);
     
-    loadData()
-  }, [fetchBookings, fetchBookingStatuses])
-
-  // อัปเดตข้อมูลที่กรองเมื่อมีการเปลี่ยนแปลง
+    // แสดงว่ากำลังประมวลผล
+    toast.info('ກຳລັງດຳເນີນການຢືນຢັນການຈອງ...');
+    
+    // เรียกใช้ฟังก์ชันยืนยันการจอง
+    await confirmBooking(booking.BookingId);
+    
+    // แสดงข้อความสำเร็จ
+    toast.success('ຢືນຢັນການຈອງສໍາເລັດແລ້ວ');
+    
+    // โหลดข้อมูลใหม่อีกครั้งเพื่ออัปเดตรายการ
+    fetchItems();
+  } catch (error) {
+    console.error('Error confirming booking:', error);
+    toast.error('ເກີດຂໍ້ຜິດພາດໃນການຢືນຢັນການຈອງ');
+  } finally {
+    setConfirmingBooking(false);
+  }
+};
+  
+  // Debug information
   useEffect(() => {
-    if (bookings && Array.isArray(bookings)) {
-      let result = [...bookings]
-      
-      // กรองตามแท็บที่เลือก
-      if (tabValue === 1) { // แท็บการจองที่กำลังดำเนินการ (Active)
-        result = result.filter(booking => {
-          const status = booking.bookingStatus?.StatusName || ''
-          return !status.includes('ຍົກເລີກ') && !status.includes('ສຳເລັດແລ້ວ')
-        })
-      } else if (tabValue === 2) { // แท็บการจองที่เสร็จสิ้นแล้ว (Completed)
-        result = result.filter(booking => {
-          const status = booking.bookingStatus?.StatusName || ''
-          return status.includes('ສຳເລັດແລ້ວ')
-        })
-      } else if (tabValue === 3) { // แท็บการจองที่ถูกยกเลิก (Cancelled)
-        result = result.filter(booking => {
-          const status = booking.bookingStatus?.StatusName || ''
-          return status.includes('ຍົກເລີກ')
-        })
-      }
-      
-      // กรองตามสถานะที่เลือก
-      if (statusFilter !== 'all') {
-        result = result.filter(booking => booking.StatusId === statusFilter)
-      }
-      
-      // กรองตามคำค้นหา
-      if (searchTerm && searchTerm.trim() !== '') {
-        const searchLower = searchTerm.toLowerCase()
-        result = result.filter(booking => {
-          const bookingId = `B${String(booking.BookingId).padStart(3, '0')}`.toLowerCase()
-          const customerName = booking.customer?.CustomerName?.toLowerCase() || ''
-          const roomId = String(booking.room?.RoomId || '').toLowerCase()
-          
-          return (
-            bookingId.includes(searchLower) ||
-            customerName.includes(searchLower) ||
-            roomId.includes(searchLower)
-          )
-        })
-      }
-      
-      setFilteredBookings(result)
-    } else {
-      setFilteredBookings([])
+    console.log('SESSION INFO:', {
+      session,
+      status,
+      userRoleId
+    });
+    
+    // Store data in sessionStorage for other components
+    if (session?.user) {
+      sessionStorage.setItem('user', JSON.stringify({
+        id: session.user.id,
+        userName: session.user.userName,
+        roleId: userRoleId,
+        role: session.user.role
+      }));
     }
-  }, [bookings, tabValue, statusFilter, searchTerm])
-
-  // จัดการการเปลี่ยนแปลงแท็บ
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue)
-  }
-
-  // จัดการการสร้างรายการใหม่
+  }, [session, status, userRoleId]);
+  
+  // Load booking statuses
+  useEffect(() => {
+    fetchBookingStatuses();
+  }, [fetchBookingStatuses]);
+  
+  // Helper function to get role name from roleId
+  const getRoleText = (roleId: number) => {
+    switch (roleId) {
+      case 1: return 'ຜູ້ດູແລລະບົບ';
+      case 2: return 'ພະນັກງານຕ້ອນຮັບ';
+      case 3: return 'ພະນັກງານທົ່ວໄປ';
+      case 4: return 'ຜູ້ຈັດການ';
+      default: return 'ບໍ່ຮູ້';
+    }
+  };
+  
+  // Filtered Items Logic
+  const filteredItems = items ? items.filter(booking => {
+    // Extract room information - handle potential undefined properties safely
+    const roomId = booking.RoomId ? String(booking.RoomId) : '';
+    const roomName = booking.room?.roomType?.TypeName || '';
+    
+    // Extract customer information
+    const customerName = booking.customer?.CustomerName || '';
+    
+    // Search logic
+    const matchesSearch = !searchValue || 
+      String(booking.BookingId).includes(searchValue) || 
+      roomId.includes(searchValue) ||
+      roomName.toLowerCase().includes(searchValue.toLowerCase()) ||
+      customerName.toLowerCase().includes(searchValue.toLowerCase());
+    
+    // Status filter logic - try to match with bookingStatus.StatusName if available
+    const matchesStatus = !statusFilter || 
+      (booking.bookingStatus?.StatusName || '') === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  }) : [];
+  
+  useEffect(() => {
+    console.log("Fetching booking items...");
+    fetchItems();
+  }, [fetchItems]);
+  
+  // Filter Handlers
+  const handleFilterChange = (value: string) => setSearchValue(value);
+  const handleStatusFilterChange = (value: string) => setStatusFilter(value);
+  
+  // Form Handlers
   const handleCreate = () => {
-    setSelectedItem(null)
-    setVisible(true)
+    setSelectedItem(null);
+    setFormOpen(true);
+  };
+  
+  const handleEdit = (item: any) => {
+    setSelectedItem(item);
+    setFormOpen(true);
+  };
+  
+  const handleFormClose = () => {
+    setSelectedItem(null);
+    setFormOpen(false);
+  };
+  
+  // Show loading state while authentication is being checked
+  const isLoading = isLoadingAuth || isLoadingBooking || isLoadingStatus || confirmingBooking;
+  
+  if (isLoadingAuth) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>ກຳລັງກວດສອບສິດການໃຊ້ງານ...</Typography>
+      </Box>
+    );
   }
-
-  // จัดการการแก้ไขรายการ
-  const handleEdit = (item: Booking) => {
-    setSelectedItem(item)
-    setVisible(true)
-  }
-
-  // จัดการการปิดแบบฟอร์ม
-  const handleHide = () => {
-    setSelectedItem(null)
-    setVisible(false)
-    // โหลดข้อมูลใหม่หลังจากปิดฟอร์ม เพื่อให้แน่ใจว่าข้อมูลเป็นปัจจุบัน
-    fetchBookings()
-  }
-
-  // จัดการการรีเฟรชข้อมูล
-  const handleRefresh = async () => {
-    try {
-      setLoadError(null)
-      await fetchBookings()
-    } catch (error) {
-      console.error("Failed to refresh booking data:", error)
-      setLoadError(error instanceof Error ? error.message : 'Failed to refresh booking data')
-    }
-  }
-
-  // ตรวจสอบว่ามีข้อมูลหรือไม่
-  const hasData = Array.isArray(bookings) && bookings.length > 0
-
+  
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        {loadError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {loadError}
-          </Alert>
-        )}
+    <Grid spacing={4} justifyContent="center">
+      <Grid item xs={12} md={10} lg={9}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" fontWeight={600}>
+            ຈັດການການຈອງ
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ສິດການໃຊ້ງານປັດຈຸບັນ: {getRoleText(userRoleId)} (ID: {userRoleId})
+          </Typography>
+        </Box>
         
-        <Card>
-          <CardHeader
-            title={<Typography variant='h5'>ການຈັດການການຈອງ</Typography>}
-            action={
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant='outlined'
-                  color='primary'
-                  onClick={handleRefresh}
-                  startIcon={<RefreshIcon />}
-                  disabled={isLoading}
-                >
-                  ໂຫລດຂໍ້ມູນໃໝ່
-                </Button>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  onClick={handleCreate}
-                  startIcon={<AddIcon />}
-                  disabled={isSubmitting}
-                >
-                  ເພີ່ມການຈອງໃໝ່
-                </Button>
-              </Box>
-            }
-          />
-
-          <Divider />
-
-          <CardContent>
-            <Box sx={{ mb: 4, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-              <TextField
-                placeholder="ຄົ້ນຫາ..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                size="small"
-                sx={{ width: 240 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              
-              <FormControl sx={{ minWidth: 200 }} size="small">
-                <InputLabel id="status-filter-label">ສະຖານະ</InputLabel>
-                <Select
-                  labelId="status-filter-label"
-                  value={statusFilter}
-                  label="ສະຖານະ"
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  startAdornment={<FilterListIcon fontSize="small" sx={{ mr: 1, ml: -0.5 }} />}
-                >
-                  <MenuItem value="all">ທັງໝົດ</MenuItem>
-                  {bookingStatuses.map(status => (
-                    <MenuItem key={status.StatusId} value={status.StatusId}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <BookingStatusChip status={status} />
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            
-            {/* แท็บสำหรับแยกประเภทการจอง */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs 
-                value={tabValue} 
-                onChange={handleTabChange}
-                aria-label="booking tabs"
-                variant="scrollable"
-                scrollButtons="auto"
-              >
-                <Tab label="ທັງໝົດ" />
-                <Tab label="ກຳລັງດຳເນີນການ" />
-                <Tab label="ສຳເລັດແລ້ວ" />
-                <Tab label="ຍົກເລີກແລ້ວ" />
-              </Tabs>
-            </Box>
-            
-            {/* เนื้อหาของแต่ละแท็บ */}
-            <TabPanel value={tabValue} index={0}>
-              {renderBookingTable()}
-            </TabPanel>
-            
-            <TabPanel value={tabValue} index={1}>
-              {renderBookingTable()}
-            </TabPanel>
-            
-            <TabPanel value={tabValue} index={2}>
-              {renderBookingTable()}
-            </TabPanel>
-            
-            <TabPanel value={tabValue} index={3}>
-              {renderBookingTable()}
-            </TabPanel>
-          </CardContent>
-        </Card>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            justifyContent: 'space-between',
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, flexGrow: 1 }}>
+            <BookingSeach
+              value={searchValue}
+              onFilterChange={handleFilterChange}
+            />
+            <BookingStatusFilter
+              statusFilter={statusFilter}
+              onStatusFilterChange={handleStatusFilterChange}
+              bookingStatuses={bookingStatuses}
+            />
+          </Box>
+          
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreate}
+            sx={{
+              height: 'fit-content',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            ເພິ່ມການຈອງ
+          </Button>
+        </Box>
+        
+        <BookingTable
+          data={filteredItems}
+          loading={isLoading}
+          onEdit={handleEdit}
+          onConfirm={handleConfirmBooking}
+          currentUserRole={userRoleId}
+          bookingStatuses={bookingStatuses}
+        />
+        
       </Grid>
-
-      <BookingFormInput 
-        open={visible} 
-        onClose={handleHide} 
-        selectedItem={selectedItem} 
-        onSaved={fetchBookings}
+      
+      <BookingFormInput
+        open={formOpen}
+        onClose={handleFormClose}
+        selectedItem={selectedItem}
+        onSaved={fetchItems}
       />
     </Grid>
-  )
-
-  // ฟังก์ชันสำหรับแสดงตารางการจอง
-  function renderBookingTable() {
-    if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
-          <CircularProgress />
-        </Box>
-      )
-    } 
-    
-    if (!hasData) {
-      return (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          ບໍ່ພົບຂໍ້ມູນການຈອງ. ກະລຸນາເພີ່ມການຈອງໃໝ່.
-        </Alert>
-      )
-    }
-    
-    if (filteredBookings.length === 0) {
-      return (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          ບໍ່ພົບຂໍ້ມູນການຈອງທີ່ຕົງກັບການຄົ້ນຫາ.
-        </Alert>
-      )
-    }
-    
-    return (
-      <BookingDataTable
-        data={filteredBookings}
-        onEdit={handleEdit}
-        loading={isLoading}
-        currentUserRole={5} // สมมติให้เป็น Role ID 5 (ผู้จัดการ)
-      />
-    )
-  }
+  );
 }
-
-export default BookingPage

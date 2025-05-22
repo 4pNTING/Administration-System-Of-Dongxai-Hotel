@@ -35,6 +35,10 @@ interface BookingState {
   setSelectedItem: (item: Booking | null) => void;
   create: (data: BookingInput) => Promise<Booking>;
   update: (id: number, data: BookingInput) => Promise<Booking>;
+  
+  // เพิ่มฟังก์ชันยืนยันการจอง
+  confirmBooking: (id: number) => Promise<Booking>;
+  
   reset: () => void;
   resetForm: () => void;
 }
@@ -192,6 +196,35 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       throw error;
     }
   },
+  
+confirmBooking: async (id: number) => {
+  const { setLoading } = useLoadingStore.getState();
+  const { setError } = useErrorStore.getState();
+  
+  try {
+    set({ isLoading: true });
+    setLoading(true);
+    
+    // ข้อมูลสำหรับอัพเดตสถานะ
+    const updateData = {
+      StatusId: 2 // เปลี่ยนจาก "รอการยืนยัน" (8) เป็น "ยืนยันแล้ว" (2)
+      // สามารถปรับ StatusId ตามที่ใช้ในระบบของคุณ
+    };
+    
+    const updatedItem = await get().update(id, updateData as any);
+    
+    set({ isLoading: false });
+    setLoading(false);
+    
+    return updatedItem;
+  } catch (error: any) {
+    set({ isLoading: false });
+    setLoading(false);
+    setError(error.message || 'Failed to confirm booking');
+    console.error('Error confirming booking:', error);
+    throw error;
+  }
+},
   
   reset: () => set({  
     isVisible: false,
