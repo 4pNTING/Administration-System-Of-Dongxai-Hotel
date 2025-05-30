@@ -17,7 +17,7 @@ import CustomerDataTable from '@views/apps/customers/dashboard/DataTable';
 import CustomerFormInput from '@views/apps/customers/dashboard/FormInput';
 
 // Store Imports
-import { useCustomerStore } from '@core/domain/store/customer/customer.store';
+import { useCustomerStore } from '@/@core/infrastructure/store/customer/customer.store';
 import { Customer } from '@core/domain/models/customer/list.model';
 
 // Helper functions for display text

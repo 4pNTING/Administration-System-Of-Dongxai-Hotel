@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import { MESSAGES } from '../../../libs/constants/messages.constant'
-import { useStaffStore } from '@core/domain/store/staffs/staff.store'
+import { useStaffStore } from '@/@core/infrastructure/store/staffs/staff.store'
 import { StaffFormSchema } from '@core/domain/schemas/staff.schema'
 import { Staff } from '@core/domain/models/staffs/list.model'
 

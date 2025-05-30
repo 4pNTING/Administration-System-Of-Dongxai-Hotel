@@ -36,7 +36,7 @@ import BookingStatusChip from './components/BookingStatus'
 import BookingActionButtons from './components/BookingActionButtons'
 
 // Store Imports
-import { useBookingStore } from '@core/domain/store/booking/booking.store'
+import { useBookingStore } from '@/@core/infrastructure/store/booking/booking.store'
 import { toast } from 'react-toastify'
 import { MESSAGES } from '../../../libs/constants/messages.constant'
 import { Booking } from '@core/domain/models/booking/list.model'

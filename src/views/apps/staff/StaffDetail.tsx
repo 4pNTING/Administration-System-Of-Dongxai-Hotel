@@ -1,11 +1,11 @@
 // src/views/staffs/StaffDetail.tsx
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useStaffStore } from '@core/domain/store/staffs/staff.store'
+import { useStaffStore } from '@/@core/infrastructure/store/staffs/staff.store'
 import { Staff } from '@core/domain/models/staffs/list.model'
-import { STAFF_ROUTE } from '@/presentation/config/app-routes.config'
+import { STAFF_ROUTE } from '@core/infrastructure/api/config/app-routes.config'
 import { toast } from 'react-toastify'
-import { MESSAGES } from '@core/constants/messages.constant'
+import { MESSAGES } from '../../..//libs/constants/messages.constant'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -114,7 +114,7 @@ const StaffDetail = ({ staffId }: StaffDetailProps) => {
   
   // แปลงข้อมูลเพศให้แสดงผลเป็นภาษาลาว
   const getGenderText = (gender: string) => {
-    switch (gender) {
+    switch (gender?.toUpperCase()) {
       case 'MALE': return 'ຊາຍ'
       case 'FEMALE': return 'ຍິງ'
       default: return 'ອື່ນໆ'
@@ -163,14 +163,14 @@ const StaffDetail = ({ staffId }: StaffDetailProps) => {
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
               ເບີໂທລະສັບ
             </Typography>
-            <Typography>{staff.Tel}</Typography>
+            <Typography>{staff.tel}</Typography>
           </Grid>
           
           <Grid item xs={12}>
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
               ທີ່ຢູ່
             </Typography>
-            <Typography>{staff.Address}</Typography>
+            <Typography>{staff.address}</Typography>
           </Grid>
           
           <Grid item xs={12} md={6}>
@@ -184,14 +184,14 @@ const StaffDetail = ({ staffId }: StaffDetailProps) => {
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
               ເງິນເດືອນ
             </Typography>
-            <Typography>{staff.Salary?.toLocaleString()} ກີບ</Typography>
+            <Typography>{staff.salary?.toLocaleString() || '-'} ກີບ</Typography>
           </Grid>
           
           <Grid item xs={12} md={6}>
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
               ເພດ
             </Typography>
-            <Typography>{getGenderText(staff.Gender)}</Typography>
+            <Typography>{getGenderText(staff.gender)}</Typography>
           </Grid>
           
           <Grid item xs={12} md={6}>
@@ -199,79 +199,81 @@ const StaffDetail = ({ staffId }: StaffDetailProps) => {
               ສິດການໃຊ້ງານ
             </Typography>
             <Typography>{getRoleText(staff.roleId)}</Typography>
-          </Grid><Grid item xs={12} md={6}>
-           <Typography variant='subtitle2' sx={{ mb: 1 }}>
-             ວັນທີສ້າງ
-           </Typography>
-           <Typography>
-             {staff.createdAt ? new Date(staff.createdAt).toLocaleString('lo-LA') : '-'}
-           </Typography>
-         </Grid>
-         
-         <Grid item xs={12} md={6}>
-           <Typography variant='subtitle2' sx={{ mb: 1 }}>
-             ອັບເດດລ່າສຸດ
-           </Typography>
-           <Typography>
-             {staff.updatedAt ? new Date(staff.updatedAt).toLocaleString('lo-LA') : '-'}
-           </Typography>
-         </Grid>
-       </Grid>
-     </CardContent>
-     
-     <Divider sx={{ m: '0 !important' }} />
-     
-     <CardActions sx={{ justifyContent: 'flex-end', p: (theme) => theme.spacing(3) }}>
-       <Button
-         variant='outlined'
-         color='primary'
-         startIcon={<EditIcon />}
-         onClick={handleEdit}
-         sx={{ mr: 2 }}
-       >
-         ແກ້ໄຂ
-       </Button>
-       <Button
-         variant='outlined'
-         color='error'
-         startIcon={<DeleteIcon />}
-         onClick={handleDeleteClick}
-       >
-         ລົບ
-       </Button>
-     </CardActions>
-     
-     {/* Delete Confirmation Dialog */}
-     <Dialog
-       open={deleteDialogOpen}
-       onClose={handleDeleteCancel}
-     >
-       <DialogTitle>ຢືນຢັນການລົບພະນັກງານ</DialogTitle>
-       <DialogContent>
-         <DialogContentText>
-           ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບພະນັກງານ {staff.StaffName}? ການກະທຳນີ້ບໍ່ສາມາດຍ້ອນກັບໄດ້.
-         </DialogContentText>
-       </DialogContent>
-       <DialogActions>
-         <Button 
-           onClick={handleDeleteCancel} 
-           color="primary" 
-           disabled={isDeleting}
-         >
-           ຍົກເລີກ
-         </Button>
-         <Button 
-           onClick={handleDeleteConfirm} 
-           color="error" 
-           disabled={isDeleting}
-           startIcon={isDeleting ? <CircularProgress size={20} /> : null}
-         >
-           {isDeleting ? 'ກຳລັງລົບ...' : 'ລົບ'}
-         </Button>
-       </DialogActions>
-     </Dialog>
-   </Card>
- )
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
+              ວັນທີສ້າງ
+            </Typography>
+            <Typography>
+              {staff.createdAt ? new Date(staff.createdAt).toLocaleString('lo-LA') : '-'}
+            </Typography>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
+              ອັບເດດລ່າສຸດ
+            </Typography>
+            <Typography>
+              {staff.updatedAt ? new Date(staff.updatedAt).toLocaleString('lo-LA') : '-'}
+            </Typography>
+          </Grid>
+        </Grid>
+      </CardContent>
+      
+      <Divider sx={{ m: '0 !important' }} />
+      
+      <CardActions sx={{ justifyContent: 'flex-end', p: (theme) => theme.spacing(3) }}>
+        <Button
+          variant='outlined'
+          color='primary'
+          startIcon={<EditIcon />}
+          onClick={handleEdit}
+          sx={{ mr: 2 }}
+        >
+          ແກ້ໄຂ
+        </Button>
+        <Button
+          variant='outlined'
+          color='error'
+          startIcon={<DeleteIcon />}
+          onClick={handleDeleteClick}
+        >
+          ລົບ
+        </Button>
+      </CardActions>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+      >
+        <DialogTitle>ຢືນຢັນການລົບພະນັກງານ</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບພະນັກງານ {staff.StaffName}? ການກະທຳນີ້ບໍ່ສາມາດຍ້ອນກັບໄດ້.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleDeleteCancel} 
+            color="primary" 
+            disabled={isDeleting}
+          >
+            ຍົກເລີກ
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} /> : null}
+          >
+            {isDeleting ? 'ກຳລັງລົບ...' : 'ລົບ'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Card>
+  )
 }
 
 export default StaffDetail

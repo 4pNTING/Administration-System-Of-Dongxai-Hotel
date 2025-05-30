@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import { format } from 'date-fns'
-import { useRoomStore } from '@core/domain/store/rooms/room.store'
+import { useRoomStore } from '@/@core/infrastructure/store/rooms/room.store'
 
 interface DateRangePickerProps {
   onSearchCallback?: (rooms: any[]) => void

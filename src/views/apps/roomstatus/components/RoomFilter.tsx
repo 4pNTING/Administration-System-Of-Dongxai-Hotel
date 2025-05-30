@@ -10,7 +10,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
 // Store Imports
-import { useRoomStatusStore } from '@core/domain/store/room-status.store';
+import { useRoomStatusStore } from '@/@core/infrastructure/store/room-status.store';
 
 export interface RoomFilterProps {
     value: string;

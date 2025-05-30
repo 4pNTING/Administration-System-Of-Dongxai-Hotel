@@ -32,7 +32,7 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 // Store & Type Imports
-import { useStaffStore } from '@core/domain/store/staffs/staff.store'
+import { useStaffStore } from '@/@core/infrastructure/store/staffs/staff.store'
 import { Staff } from '@core/domain/models/staffs/list.model'
 
 // Style Imports

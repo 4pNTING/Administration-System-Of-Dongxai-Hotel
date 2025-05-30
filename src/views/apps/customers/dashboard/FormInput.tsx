@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import { MESSAGES } from '../../../../libs/constants/messages.constant'
-import { useCustomerStore } from '@core/domain/store/customer/customer.store'
+import { useCustomerStore } from '@/@core/infrastructure/store/customer/customer.store'
 import { CustomerFormSchema } from '@core/domain/schemas/customer.schema'
 import { Customer } from '@core/domain/models/customer/list.model'
 

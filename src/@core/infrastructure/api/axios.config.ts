@@ -1,8 +1,8 @@
 // src/app/infrastructure/api/axios.config.ts
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { getSession, signOut } from 'next-auth/react';
-import { useLoadingStore } from '@core/domain/store/useLoading.store';
-import { useErrorStore } from '@core/domain/store/useError.store';
+import { useLoadingStore } from '@/@core/infrastructure/store/useLoading.store';
+import { useErrorStore } from '@/@core/infrastructure/store/useError.store';
 
 // API configuration
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:5000/v1';

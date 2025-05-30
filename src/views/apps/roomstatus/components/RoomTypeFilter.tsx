@@ -7,7 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 
 // Store Imports
-import { useRoomTypeStore } from '@core/domain/store/roomType.store';
+import { useRoomTypeStore } from '@/@core/infrastructure/store/roomType.store';
 
 export interface RoomTypeFilterProps {
     typeFilter: string;

@@ -10,7 +10,7 @@ const ENDPOINTS = {
     CUSTOMER: {
         BASE_URL: '/customers' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -18,7 +18,7 @@ const ENDPOINTS = {
     STAFF: {
         BASE_URL: '/staff' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -26,7 +26,7 @@ const ENDPOINTS = {
     ROOM: {
         BASE_URL: '/rooms' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         get AVAILABLE() { return `${this.BASE_URL}/available` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
@@ -35,7 +35,7 @@ const ENDPOINTS = {
     ROOM_TYPE: {
         BASE_URL: '/room-types' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -43,7 +43,7 @@ const ENDPOINTS = {
     ROOM_STATUS: {
         BASE_URL: '/room-statuses' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` }
@@ -51,13 +51,17 @@ const ENDPOINTS = {
     BOOKING: {
         BASE_URL: '/bookings' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
         DELETE: function (id: number) { return `${this.BASE_URL}/${id}` },
         CHANGE_STATUS: function (id: number, status: string) {
             return `${this.BASE_URL}/${id}/status/${status}`
-        }
+        },
+        // ===== เพิ่ม Workflow Endpoints =====
+        CONFIRM: function (id: number) { return `${this.BASE_URL}/${id}/confirm` },
+        CHECKIN: function (id: number) { return `${this.BASE_URL}/${id}/checkin` },
+        CHECKOUT: function (id: number) { return `${this.BASE_URL}/${id}/checkout` }
     },
     BOOKING_STATUS: {
         BASE_URL: '/booking-statuses' as const,
@@ -70,7 +74,7 @@ const ENDPOINTS = {
     PAYMENT: {
         BASE_URL: '/payments' as const,
         get GET() { return `${this.BASE_URL}/query` },
-        get CREATE() { return `${this.BASE_URL}/create` }, // เพิ่ม /create
+        get CREATE() { return `${this.BASE_URL}/create` },
         DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
         BY_BOOKING: function (bookingId: number) { return `${this.BASE_URL}/booking/${bookingId}` }
     },

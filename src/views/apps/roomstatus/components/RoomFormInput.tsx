@@ -20,9 +20,9 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
 
 // Store Imports
-import { useRoomStore } from '@core/domain/store/rooms/room.store'
-import { useRoomTypeStore } from '@core/domain/store/roomType.store'
-import { useRoomStatusStore } from '@core/domain/store/room-status.store'
+import { useRoomStore } from '@/@core/infrastructure/store/rooms/room.store'
+import { useRoomTypeStore } from '@/@core/infrastructure/store/roomType.store'
+import { useRoomStatusStore } from '@/@core/infrastructure/store/room-status.store'
 
 // Schema Imports
 import { RoomFormSchema } from '@core/domain/schemas/room.schema'

@@ -16,7 +16,7 @@ import { RoomDataTable } from "@views/apps/roomstatus/components/RoomDataTable";
 import RoomFormInput from "@views/apps/roomstatus/components/RoomFormInput";
 
 // Store Imports
-import { useRoomStore } from "@core/domain/store/rooms/room.store";
+import { useRoomStore } from "@/@core/infrastructure/store/rooms/room.store";
 
 export default function RoomPage() {
   const { items, fetchItems, isLoading } = useRoomStore();

@@ -18,7 +18,7 @@ import StaffDataTable from '@views/apps/staff/StaffTable';
 import StaffFormInput from '@views/apps/staff/StaffFormInput';
 
 // Store Imports
-import { useStaffStore } from '@core/domain/store/staffs/staff.store';
+import { useStaffStore } from '@/@core/infrastructure/store/staffs/staff.store';
 
 // Helper functions for display text
 const getGenderText = (gender: string) => {

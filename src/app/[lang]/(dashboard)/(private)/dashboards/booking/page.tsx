@@ -19,8 +19,8 @@ import BookingTable from '@views/apps/booking/BookingTable';
 import BookingFormInput from '@views/apps/booking/components/BookingFormInput';
 
 // Store Imports
-import { useBookingStore } from '@core/domain/store/booking/booking.store';
-import { useBookingStatusStore } from '@core/domain/store/booking/booking-status.store';
+import { useBookingStore } from '@/@core/infrastructure/store/booking/booking.store';
+import { useBookingStatusStore } from '@/@core/infrastructure/store/booking/booking-status.store';
 import { Booking } from '@core/domain/models/booking/list.model';
 
 export default function BookingPage() {

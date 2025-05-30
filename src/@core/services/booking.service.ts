@@ -31,6 +31,21 @@ export class BookingService {
   async delete(id: number): Promise<void> {
     return this.useCase.executeDelete(id);
   }
+
+  // เพิ่ม method ใหม่สำหรับ checkin
+  async checkin(id: number): Promise<Booking> {
+    return this.useCase.executeCheckin(id);
+  }
+
+  // เพิ่ม method ใหม่สำหรับ confirm
+  async confirm(id: number): Promise<Booking> {
+    return this.useCase.executeConfirm(id);
+  }
+
+  // เพิ่ม method ใหม่สำหรับ checkout
+  async checkout(id: number): Promise<Booking> {
+    return this.useCase.executeCheckout(id);
+  }
 }
 
 const repository = new BookingRepository();
