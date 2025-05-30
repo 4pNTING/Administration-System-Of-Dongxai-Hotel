@@ -45,4 +45,36 @@ export class BookingUseCase {
       throw error;
     }
   }
+
+  // ===== เพิ่ม Workflow Methods =====
+
+  async executeCheckin(id: number): Promise<Booking> {
+    try {
+      console.log('📋 UseCase: Executing check-in for booking ID:', id);
+      return await this.repository.checkin(id);
+    } catch (error) {
+      console.error('❌ UseCase: Error executing check-in:', error);
+      throw error;
+    }
+  }
+
+  async executeConfirm(id: number): Promise<Booking> {
+    try {
+      console.log('📋 UseCase: Executing confirm for booking ID:', id);
+      return await this.repository.confirm(id);
+    } catch (error) {
+      console.error('❌ UseCase: Error executing confirm:', error);
+      throw error;
+    }
+  }
+
+  async executeCheckout(id: number): Promise<Booking> {
+    try {
+      console.log('📋 UseCase: Executing check-out for booking ID:', id);
+      return await this.repository.checkout(id);
+    } catch (error) {
+      console.error('❌ UseCase: Error executing check-out:', error);
+      throw error;
+    }
+  }
 }

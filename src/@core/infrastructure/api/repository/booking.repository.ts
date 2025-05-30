@@ -64,4 +64,51 @@ export class BookingRepository implements BookingRepositoryPort {
       throw error;
     }
   }
+
+  // ===== เพิ่ม Methods ใหม่สำหรับ Booking Workflow =====
+
+  async checkin(id: number): Promise<Booking> {
+    try {
+      console.log('🏨 Repository: Processing check-in for booking ID:', id);
+      
+      // ใช้ endpoint จาก config
+      const response = await api.patch<ApiResponse<Booking>>(this.URL.CHECKIN(id), {});
+      
+      console.log('✅ Repository: Check-in response:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Repository: Error processing check-in:', error);
+      throw error;
+    }
+  }
+
+  async confirm(id: number): Promise<Booking> {
+    try {
+      console.log('✔️ Repository: Confirming booking ID:', id);
+      
+      // ใช้ endpoint จาก config
+      const response = await api.patch<ApiResponse<Booking>>(this.URL.CONFIRM(id), {});
+      
+      console.log('✅ Repository: Confirm response:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Repository: Error confirming booking:', error);
+      throw error;
+    }
+  }
+
+  async checkout(id: number): Promise<Booking> {
+    try {
+      console.log('🚪 Repository: Processing check-out for booking ID:', id);
+      
+      // ใช้ endpoint จาก config
+      const response = await api.patch<ApiResponse<Booking>>(this.URL.CHECKOUT(id), {});
+      
+      console.log('✅ Repository: Check-out response:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Repository: Error processing check-out:', error);
+      throw error;
+    }
+  }
 }

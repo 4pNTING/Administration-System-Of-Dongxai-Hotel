@@ -8,4 +8,9 @@ export interface BookingRepositoryPort {
   create(data: BookingInput): Promise<Booking>;
   update(id: number, data: Partial<BookingInput>): Promise<Booking>;
   delete(id: number): Promise<void>;
+
+  // เพิ่ม workflow methods สำหรับสถานะ booking
+  checkin(id: number): Promise<Booking>;
+  confirm(id: number): Promise<Booking>;
+  checkout(id: number): Promise<Booking>;
 }

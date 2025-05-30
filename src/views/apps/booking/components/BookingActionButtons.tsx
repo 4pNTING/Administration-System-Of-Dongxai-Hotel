@@ -12,8 +12,6 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import Stack from '@mui/material/Stack' // เพิ่ม Stack สำหรับจัดเรียงปุ่ม
-import Chip from '@mui/material/Chip' // เพิ่ม Chip สำหรับแสดงสถานะ
 
 // Type Imports
 import { Booking } from '@core/domain/models/booking/list.model'
@@ -108,8 +106,7 @@ const BookingActionButtons = ({
   
   // ตรวจสอบว่าสถานะการจองเป็น "รอการยืนยัน" หรือไม่
   const isPendingConfirmation = () => {
-    // สมมติว่า StatusId = 8 คือสถานะ "รอการยืนยัน"
-    // ปรับตามค่า StatusId ที่ใช้จริงในระบบของคุณ
+    // สมมติว่า StatusId = 1 คือสถานะ "รอการยืนยัน"
     return booking.StatusId === 1
   }
   
@@ -166,78 +163,44 @@ const BookingActionButtons = ({
     toast.info(MESSAGES.SUCCESS.CANCElED)
   }
   
-  // ถ้าเป็นการจองที่รอการยืนยัน ให้แสดง UI พิเศษ
-  if (isPendingConfirmation()) {
-    return (
-      <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
-        {/* แสดง Chip บอกสถานะรอการยืนยัน */}
-       
-        
-        {/* ปุ่มยืนยันการจอง */}
-        <Tooltip title={canConfirm ? 'ຢືນຢັນການຈອງ' : 'ບໍ່ມີສິດການຢືນຢັນ'}>
-          <span>
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              startIcon={<i className='tabler-check text-lg' />}
-              onClick={handleConfirmClick}
-              disabled={!canConfirm}
-              sx={{ 
-                opacity: canConfirm ? 1 : 0.7,
-                cursor: canConfirm ? 'pointer' : 'not-allowed',
-                minWidth: 'unset',
-                px: 1
-              }}
-            >
-           
-            </Button>
-          </span>
-        </Tooltip>
-        
-        {/* ปุ่มแก้ไข */}
-        <Tooltip title={canEdit ? 'ແກ້ໄຂ' : 'ບໍ່ມີສິດການແກ້ໄຂ'}>
-          <span>
-            <IconButton
-              color='primary'
-              onClick={handleEdit}
-              size='small'
-              disabled={!canEdit}
-              sx={{ 
-                opacity: canEdit ? 1 : 0.5,
-                cursor: canEdit ? 'pointer' : 'not-allowed'
-              }}
-            >
-              <i className='tabler-edit text-lg' />
-            </IconButton>
-          </span>
-        </Tooltip>
-        
-        {/* ปุ่มลบ */}
-        <Tooltip title={canDelete ? 'ລົບ' : 'ບໍ່ມີສິດການລົບ'}>
-          <span>
-            <IconButton
-              color='error'
-              onClick={handleDeleteClick}
-              size='small'
-              disabled={!canDelete}
-              sx={{ 
-                opacity: canDelete ? 1 : 0.5,
-                cursor: canDelete ? 'pointer' : 'not-allowed'
-              }}
-            >
-              <i className='tabler-trash text-lg' />
-            </IconButton>
-          </span>
-        </Tooltip>
-      </Stack>
-    )
-  }
-  
-  // สำหรับสถานะอื่นๆ แสดง UI ปกติ
+  // แสดงปุ่มทั้งหมดเสมอ แต่ disable ตามเงื่อนไข
   return (
     <>
       <div className='flex items-center justify-center gap-2'>
+        {/* ปุ่มยืนยันการจอง - แสดงเสมอ แต่ disable เมื่อไม่ใช่สถานะรอการยืนยัน */}
+        <Tooltip title={
+          !isPendingConfirmation() 
+            ? 'ສະຖານະບໍ່ໃຊ່ຮອການຢືນຢັນ' 
+            : canConfirm 
+              ? 'ຢືນຢັນການຈອງ' 
+              : 'ບໍ່ມີສິດການຢືນຢັນ'
+        }>
+          <span>
+            <IconButton
+              color='success'
+              onClick={handleConfirmClick}
+              size='small'
+              disabled={!isPendingConfirmation() || !canConfirm}
+              sx={{ 
+                opacity: (isPendingConfirmation() && canConfirm) ? 1 : 0.3,
+                cursor: (isPendingConfirmation() && canConfirm) ? 'pointer' : 'not-allowed',
+                backgroundColor: (isPendingConfirmation() && canConfirm) ? 'success.main' : 'grey.300',
+                color: (isPendingConfirmation() && canConfirm) ? 'white' : 'grey.500',
+                '&:hover': {
+                  backgroundColor: (isPendingConfirmation() && canConfirm) ? 'success.dark' : 'grey.300',
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: 'grey.300',
+                  color: 'grey.500'
+                }
+              }}
+            >
+              <i className='tabler-check text-lg' />
+            </IconButton>
+          </span>
+        </Tooltip>
+        
+        {/* ปุ่มแก้ไข - แสดงเสมอ */}
         <Tooltip title={canEdit ? 'ແກ້ໄຂ' : 'ບໍ່ມີສິດການແກ້ໄຂ'}>
           <span>
             <IconButton
@@ -246,7 +209,7 @@ const BookingActionButtons = ({
               size='small'
               disabled={!canEdit}
               sx={{ 
-                opacity: canEdit ? 1 : 0.5,
+                opacity: canEdit ? 1 : 0.3,
                 cursor: canEdit ? 'pointer' : 'not-allowed'
               }}
             >
@@ -255,6 +218,7 @@ const BookingActionButtons = ({
           </span>
         </Tooltip>
         
+        {/* ปุ่มลบ - แสดงเสมอ */}
         <Tooltip title={canDelete ? 'ລົບ' : 'ບໍ່ມີສິດການລົບ'}>
           <span>
             <IconButton
@@ -263,7 +227,7 @@ const BookingActionButtons = ({
               size='small'
               disabled={!canDelete}
               sx={{ 
-                opacity: canDelete ? 1 : 0.5,
+                opacity: canDelete ? 1 : 0.3,
                 cursor: canDelete ? 'pointer' : 'not-allowed'
               }}
             >
