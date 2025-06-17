@@ -1,6 +1,6 @@
 // src/core/use-cases/booking.use-case.ts
 import { Booking } from "@core/domain/models/booking/list.model";
-import { BookingRepositoryPort } from "@core/interface/repositoriesport/booking.port";
+import { BookingRepositoryPort } from "@/@core/interface/reposport/booking.port";
 import { BookingInput } from "@core/domain/models/booking/form.model";
 
 export class BookingUseCase {
@@ -46,31 +46,32 @@ export class BookingUseCase {
     }
   }
 
-  // ===== เพิ่ม Workflow Methods =====
+  async executeCancel(id: number): Promise<Booking> {
+    try {
+      return await this.repository.cancel(id);
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async executeCheckin(id: number): Promise<Booking> {
     try {
-      console.log('📋 UseCase: Executing check-in for booking ID:', id);
       return await this.repository.checkin(id);
     } catch (error) {
-      console.error('❌ UseCase: Error executing check-in:', error);
       throw error;
     }
   }
 
   async executeConfirm(id: number): Promise<Booking> {
     try {
-      console.log('📋 UseCase: Executing confirm for booking ID:', id);
       return await this.repository.confirm(id);
     } catch (error) {
-      console.error('❌ UseCase: Error executing confirm:', error);
       throw error;
     }
   }
 
   async executeCheckout(id: number): Promise<Booking> {
     try {
-      console.log('📋 UseCase: Executing check-out for booking ID:', id);
       return await this.repository.checkout(id);
     } catch (error) {
       console.error('❌ UseCase: Error executing check-out:', error);

@@ -1,6 +1,6 @@
 // src/core/services/booking-status.service.ts
 import { BookingStatus } from "@core/domain/models/booking/booking-status/list.model";
-import { BookingStatusRepositoryPort } from "@core/interface/repositoriesport/booking-status.port";
+import { BookingStatusRepositoryPort } from "@/@core/interface/reposport/booking-status.port";
 import { BookingStatusUseCase } from "@core/use-cases/booking-status.use-case";
 import { BookingStatusRepository } from "@core/infrastructure/api/repository/booking-status.repository";
 

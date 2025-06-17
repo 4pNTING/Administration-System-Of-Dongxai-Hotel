@@ -1,6 +1,6 @@
 // src/core/services/staff.service.ts
 import { Staff } from "@core/domain/models/staffs/list.model";
-import { StaffRepositoryPort } from "@core/interface/repositoriesport/staff.port";
+import { StaffRepositoryPort } from "@/@core/interface/reposport/staff.port";
 import { StaffUseCase } from "@core/use-cases/staff.use-case";
 import { StaffInput } from "@core/domain/models/staffs/form.model";
 import { StaffRepository } from "@core/infrastructure/api/repository/staff.repository";

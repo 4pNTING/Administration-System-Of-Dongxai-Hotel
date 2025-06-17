@@ -1,7 +1,7 @@
 // @core/use-cases/room-type.use-case.ts
 import { RoomTypeModel } from "@core/domain/models/room-type/list.model";
 import { RoomTypeFormData } from "@core/domain/models/room-type/form.model";
-import { RoomTypeRepositoryPort } from "@core/interface/repositoriesport/room-type.port";
+import { RoomTypeRepositoryPort } from "@/@core/interface/reposport/room-type.port";
 
 export class RoomTypeUseCase {
   constructor(private repository: RoomTypeRepositoryPort) {}

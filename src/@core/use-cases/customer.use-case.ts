@@ -1,6 +1,6 @@
 // src/app/application/use-cases/customer-use-case.ts
 import { Customer } from "@core/domain/models/customer/list.model";
-import { CustomerRepositoryPort } from "../interface/repositoriesport/customer.port";
+import { CustomerRepositoryPort } from "../interface/reposport/customer.port";
 import { CustomerFormData } from "@core/domain/models/customer/form.model";
 
 export class CustomerUseCase {

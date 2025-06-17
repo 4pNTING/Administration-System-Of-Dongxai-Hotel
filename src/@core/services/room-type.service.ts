@@ -1,6 +1,6 @@
 // @core/services/room-type.service.ts
 import { RoomTypeModel } from "@core/domain/models/room-type/list.model";
-import { RoomTypeRepositoryPort } from "@core/interface/repositoriesport/room-type.port";
+import { RoomTypeRepositoryPort } from "@/@core/interface/reposport/room-type.port";
 import { RoomTypeUseCase } from "@core/use-cases/room-type.use-case";
 import { RoomTypeRepository } from "@core/infrastructure/api/repository/room-type.repository";
 import { RoomTypeFormData } from "@core/domain/models/room-type/form.model";

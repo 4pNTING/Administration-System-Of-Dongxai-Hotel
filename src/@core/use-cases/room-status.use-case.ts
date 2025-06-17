@@ -1,6 +1,6 @@
 // @core/use-cases/room-status.use-case.ts
 import { RoomStatusModel } from "@core/domain/models/room-status/list.model";
-import { RoomStatusRepositoryPort } from "@core/interface/repositoriesport/room-status.port";
+import { RoomStatusRepositoryPort } from "@/@core/interface/reposport/room-status.port";
 
 export class RoomStatusUseCase {
   constructor(private repository: RoomStatusRepositoryPort) {}

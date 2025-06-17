@@ -1,6 +1,6 @@
 // src/app/core/services/room.service.ts
 import { Room } from "@core/domain/models/rooms/list.model";
-import { RoomRepositoryPort } from "@core/interface/repositoriesport/room.port";
+import { RoomRepositoryPort } from "@/@core/interface/reposport/room.port";
 import { RoomUseCase } from "@core/use-cases/room.use-case";
 import { RoomFormData } from "@core/domain/models/rooms/form.model";
 import { RoomRepository } from "@core/infrastructure/api/repository/room.repository";

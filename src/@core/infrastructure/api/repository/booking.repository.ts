@@ -3,7 +3,7 @@ import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
 import { BookingInput } from "@core/domain/models/booking/form.model";
 import { Booking } from "@core/domain/models/booking/list.model";
-import { BookingRepositoryPort } from "@core/interface/repositoriesport/booking.port";
+import { BookingRepositoryPort } from "@/@core/interface/reposport/booking.port";
 import { BOOKING_ENDPOINTS } from "../config/endpoints.config";
 import { BOOKING_QUERY } from "@core/infrastructure/queries/booking.query";
 
@@ -78,6 +78,20 @@ export class BookingRepository implements BookingRepositoryPort {
       return response.data.data;
     } catch (error) {
       console.error('❌ Repository: Error processing check-in:', error);
+      throw error;
+    }
+  }
+   async cancel(id: number): Promise<Booking> {
+    try {
+      console.log('❌ Repository: Processing cancel for booking ID:', id);
+      
+      // ใช้ endpoint จาก config
+      const response = await api.patch<ApiResponse<Booking>>(this.URL.CANCEL(id), {});
+      
+      console.log('✅ Repository: Cancel response:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('❌ Repository: Error processing cancel:', error);
       throw error;
     }
   }

@@ -1,7 +1,7 @@
 // src/core/infrastructure/repositories/room-type.repository.ts
 import { api } from "@core/infrastructure/api/axios.config";
 import { ActionResponse, ApiResponse } from "@core/domain/models/common/api.model";
-import { RoomTypeRepositoryPort } from "@core/interface/repositoriesport/room-type.port";
+import { RoomTypeRepositoryPort } from "@/@core/interface/reposport/room-type.port";
 import { ROOM_TYPE_QUERY } from "@core/infrastructure/queries/room-type.query";
 import { ROOM_TYPE_ENDPOINTS } from "../config/endpoints.config";
 import { RoomTypeModel } from "@core/domain/models/room-type/list.model";

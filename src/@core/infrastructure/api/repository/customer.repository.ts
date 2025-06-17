@@ -1,6 +1,6 @@
 import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
-import { CustomerRepositoryPort } from "@core/interface/repositoriesport/customer.port";
+import { CustomerRepositoryPort } from "@/@core/interface/reposport/customer.port";
 import { CUSTOMER_QUERY } from "@core/infrastructure/queries/customer.query";
 import { CUSTOMER_ENDPOINTS } from "../config/endpoints.config";
 import { CustomerFormData } from "@core/domain/models/customer/form.model";

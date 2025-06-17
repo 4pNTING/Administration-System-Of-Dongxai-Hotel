@@ -1,6 +1,6 @@
 // src/core/use-cases/staff.use-case.ts
 import { Staff } from "@core/domain/models/staffs/list.model";
-import { StaffRepositoryPort } from "@core/interface/repositoriesport/staff.port";
+import { StaffRepositoryPort } from "@/@core/interface/reposport/staff.port";
 import { StaffInput } from "@core/domain/models/staffs/form.model";
 
 export class StaffUseCase {

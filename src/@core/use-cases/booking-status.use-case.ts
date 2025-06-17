@@ -1,6 +1,6 @@
 // src/core/use-cases/booking-status.use-case.ts
 import { BookingStatus } from "@core/domain/models/booking/booking-status/list.model";
-import { BookingStatusRepositoryPort } from "@core/interface/repositoriesport/booking-status.port";
+import { BookingStatusRepositoryPort } from "@/@core/interface/reposport/booking-status.port";
 
 export class BookingStatusUseCase {
   constructor(private readonly repository: BookingStatusRepositoryPort) {}

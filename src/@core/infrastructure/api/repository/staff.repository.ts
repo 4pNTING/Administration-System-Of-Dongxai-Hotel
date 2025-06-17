@@ -3,7 +3,7 @@ import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
 import { StaffInput } from "@core/domain/models/staffs/form.model";
 import { Staff } from "@core/domain/models/staffs/list.model";
-import { StaffRepositoryPort } from "@core/interface/repositoriesport/staff.port";
+import { StaffRepositoryPort } from "@/@core/interface/reposport/staff.port";
 import { STAFF_ENDPOINTS } from "../config/endpoints.config";
 import { STAFF_QUERY } from "@core/infrastructure/queries/staff.query";
 

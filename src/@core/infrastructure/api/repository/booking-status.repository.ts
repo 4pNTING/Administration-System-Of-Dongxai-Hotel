@@ -2,7 +2,7 @@
 import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
 import { BookingStatus } from "@core/domain/models/booking/booking-status/list.model";
-import { BookingStatusRepositoryPort } from "@core/interface/repositoriesport/booking-status.port";
+import { BookingStatusRepositoryPort } from "@/@core/interface/reposport/booking-status.port";
 import { BOOKING_STATUS_ENDPOINTS } from "../config/endpoints.config";
 
 export class BookingStatusRepository implements BookingStatusRepositoryPort {

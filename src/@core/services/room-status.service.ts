@@ -1,5 +1,5 @@
 import { RoomStatusModel } from "@core/domain/models/room-status/list.model";
-import { RoomStatusRepositoryPort } from "@core/interface/repositoriesport/room-status.port";
+import { RoomStatusRepositoryPort } from "@/@core/interface/reposport/room-status.port";
 import { RoomStatusUseCase } from "@core/use-cases/room-status.use-case";
 import { RoomStatusRepository } from "@core/infrastructure/api/repository/room-status.repository";
 

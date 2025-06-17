@@ -58,9 +58,24 @@ const ENDPOINTS = {
         CHANGE_STATUS: function (id: number, status: string) {
             return `${this.BASE_URL}/${id}/status/${status}`
         },
-        // ===== เพิ่ม Workflow Endpoints =====
         CONFIRM: function (id: number) { return `${this.BASE_URL}/${id}/confirm` },
         CHECKIN: function (id: number) { return `${this.BASE_URL}/${id}/checkin` },
+        CHECKOUT: function (id: number) { return `${this.BASE_URL}/${id}/checkout` },
+        CANCEL: (id: number) => `/bookings/${id}/cancel`,
+    },
+
+    CHECKIN: {
+        BASE_URL: '/check-ins' as const,
+        get GET() { return `${this.BASE_URL}/query` },
+        get CREATE() { return `${this.BASE_URL}/create` },
+        DETAIL: function (id: number) { return `${this.BASE_URL}/${id}` },
+        UPDATE: function (id: number) { return `${this.BASE_URL}/${id}` },
+        DELETE: function (id: number) { return `${this.BASE_URL}/${id}` },
+        CHANGE_STATUS: function (id: number, status: string) {
+            return `${this.BASE_URL}/${id}/status/${status}`
+        },
+        BY_CUSTOMER: function (customerId: number) { return `${this.BASE_URL}/customer/${customerId}` },
+        BY_BOOKING: function (bookingId: number) { return `${this.BASE_URL}/booking/${bookingId}` },
         CHECKOUT: function (id: number) { return `${this.BASE_URL}/${id}/checkout` }
     },
     BOOKING_STATUS: {
@@ -95,6 +110,7 @@ export const {
     ROOM_TYPE: ROOM_TYPE_ENDPOINTS,
     ROOM_STATUS: ROOM_STATUS_ENDPOINTS,
     BOOKING: BOOKING_ENDPOINTS,
+    CHECKIN: CHECKIN_ENDPOINTS,
     BOOKING_STATUS: BOOKING_STATUS_ENDPOINTS,
     PAYMENT: PAYMENT_ENDPOINTS,
     DASHBOARD: DASHBOARD_ENDPOINTS

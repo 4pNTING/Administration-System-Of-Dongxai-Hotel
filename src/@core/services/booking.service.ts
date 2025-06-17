@@ -1,6 +1,6 @@
 // src/core/services/booking.service.ts
 import { Booking } from "@core/domain/models/booking/list.model";
-import { BookingRepositoryPort } from "@core/interface/repositoriesport/booking.port";
+import { BookingRepositoryPort } from "@/@core/interface/reposport/booking.port";
 import { BookingUseCase } from "@core/use-cases/booking.use-case";
 import { BookingInput } from "@core/domain/models/booking/form.model";
 import { BookingRepository } from "@core/infrastructure/api/repository/booking.repository";
@@ -32,12 +32,14 @@ export class BookingService {
     return this.useCase.executeDelete(id);
   }
 
-  // เพิ่ม method ใหม่สำหรับ checkin
   async checkin(id: number): Promise<Booking> {
     return this.useCase.executeCheckin(id);
   }
 
-  // เพิ่ม method ใหม่สำหรับ confirm
+  async cancel(id: number): Promise<Booking> {
+    return this.useCase.executeCancel(id);
+  }
+
   async confirm(id: number): Promise<Booking> {
     return this.useCase.executeConfirm(id);
   }

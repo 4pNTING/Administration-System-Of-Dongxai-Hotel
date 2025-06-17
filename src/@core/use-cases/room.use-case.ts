@@ -1,6 +1,6 @@
 // src/app/core/use-cases/room.use-case.ts
 import { Room } from "@core/domain/models/rooms/list.model";
-import { RoomRepositoryPort } from "@core/interface/repositoriesport/room.port";
+import { RoomRepositoryPort } from "@/@core/interface/reposport/room.port";
 import { RoomFormData } from "@core/domain/models/rooms/form.model";
 
 export class RoomUseCase {

@@ -1,6 +1,6 @@
 import { api } from "@core/infrastructure/api/axios.config";
 import { ApiResponse } from "@core/domain/models/common/api.model";
-import { RoomStatusRepositoryPort } from "@core/interface/repositoriesport/room-status.port";
+import { RoomStatusRepositoryPort } from "@/@core/interface/reposport/room-status.port";
 import { ROOM_STATUS_QUERY } from "@core/infrastructure/queries/room-status.query";
 import { ROOM_STATUS_ENDPOINTS } from "@core/infrastructure/api/config/endpoints.config";
 import { RoomStatusModel } from "@core/domain/models/room-status/list.model";

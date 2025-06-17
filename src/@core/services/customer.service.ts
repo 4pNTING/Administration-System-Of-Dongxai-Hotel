@@ -1,5 +1,5 @@
 import { Customer } from "@core/domain/models/customer/list.model";
-import { CustomerRepositoryPort } from "@core/interface/repositoriesport/customer.port";
+import { CustomerRepositoryPort } from "@/@core/interface/reposport/customer.port";
 import { CustomerUseCase } from "@core/use-cases/customer.use-case";
 import { CustomerFormData } from "@core/domain/models/customer/form.model";
 import { CustomerRepository } from "@core/infrastructure/api/repository/customer.repository";

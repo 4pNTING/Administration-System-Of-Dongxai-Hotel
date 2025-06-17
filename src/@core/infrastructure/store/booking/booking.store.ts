@@ -13,7 +13,8 @@ interface BookingState {
   items: Booking[];
   isLoading: boolean;
   filters: Record<string, any>;
-  
+  checkin: (id: number) => Promise<Booking>; 
+  cancel: (id: number) => Promise<Booking>;  
   // สถานะฟอร์ม
   isVisible: boolean;
   isFormVisible: boolean;
@@ -43,9 +44,9 @@ interface BookingState {
   resetForm: () => void;
 }
 
-// สร้าง Zustand store
+
 export const useBookingStore = create<BookingState>((set, get) => ({
-  // สถานะเริ่มต้น
+  
   items: [],
   isLoading: false,
   filters: {},
@@ -66,12 +67,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   })),
   
   removeItem: (id: number) => set((state) => ({
-    items: state.items.filter((item) => item.id !== id)
+    items: state.items.filter((item) => item.BookingId !== id) // แก้จาก item.id เป็น item.BookingId
   })),
   
   updateItem: (id: number, updatedItem: Booking) => set((state) => ({
     items: state.items.map((item) => 
-      item.id === id ? { ...item, ...updatedItem } : item
+      item.BookingId === id ? { ...item, ...updatedItem } : item // แก้จาก item.id เป็น item.BookingId
     )
   })),
   
@@ -115,7 +116,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   fetchBookingById: async (id: number) => {
     try {
       // ตรวจสอบว่ามีข้อมูลใน store แล้วหรือไม่
-      const existingBooking = get().items.find(booking => booking.id === id);
+      const existingBooking = get().items.find(booking => booking.BookingId === id); // แก้จาก booking.id เป็น booking.BookingId
       if (existingBooking) {
         return existingBooking;
       }
@@ -143,7 +144,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       setLoading(true);
       
       const createResponse = await bookingService.create(data as any);
-      const completeItem = await bookingService.getOne(createResponse.id);
+      const completeItem = await bookingService.getOne(createResponse.BookingId); // แก้จาก createResponse.id เป็น createResponse.BookingId
       
       get().addItem(completeItem);
       
@@ -197,7 +198,68 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     }
   },
   
-confirmBooking: async (id: number) => {
+  confirmBooking: async (id: number) => {
+    const { setLoading } = useLoadingStore.getState();
+    const { setError } = useErrorStore.getState();
+    
+    try {
+      set({ isLoading: true });
+      setLoading(true);
+      
+     
+      const updateData = {
+        StatusId: 2 
+      };
+      
+      const updatedItem = await get().update(id, updateData as any);
+      
+      set({ isLoading: false });
+      setLoading(false);
+      
+      return updatedItem;
+    } catch (error: any) {
+      set({ isLoading: false });
+      setLoading(false);
+      setError(error.message || 'Failed to confirm booking');
+      console.error('Error confirming booking:', error);
+      throw error;
+    }
+  },
+
+ 
+  checkin: async (id: number) => {
+    const { setLoading } = useLoadingStore.getState();
+    const { setError } = useErrorStore.getState();
+    
+    try {
+      set({ isLoading: true });
+      setLoading(true);
+    
+      const result = await bookingService.checkin(id);
+      
+     
+      set(state => ({
+        items: state.items.map(item => 
+          item.BookingId === id 
+            ? { ...item, StatusId: 3 } 
+            : item
+        ),
+        isLoading: false
+      }));
+      
+      setLoading(false);
+ 
+      return result;
+    } catch (error: any) {
+      set({ isLoading: false });
+      setLoading(false);
+      setError(error.message || 'Failed to check in booking');
+      throw error;
+    }
+  },
+
+  
+cancel: async (id: number) => {
   const { setLoading } = useLoadingStore.getState();
   const { setError } = useErrorStore.getState();
   
@@ -205,23 +267,30 @@ confirmBooking: async (id: number) => {
     set({ isLoading: true });
     setLoading(true);
     
-    // ข้อมูลสำหรับอัพเดตสถานะ
-    const updateData = {
-      StatusId: 2 // เปลี่ยนจาก "รอการยืนยัน" (8) เป็น "ยืนยันแล้ว" (2)
-      // สามารถปรับ StatusId ตามที่ใช้ในระบบของคุณ
-    };
+    console.log('❌ Store: Cancelling booking ID:', id);
     
-    const updatedItem = await get().update(id, updateData as any);
+    // ✅ แก้ไข: เรียกใช้ API cancel ที่มี business logic
+    const result = await bookingService.cancel(id);
     
-    set({ isLoading: false });
+    // อัปเดต StatusId ใน store หลังจากยกเลิกสำเร็จ
+    set(state => ({
+      items: state.items.map(item => 
+        item.BookingId === id 
+          ? { ...item, StatusId: 5 } // เปลี่ยนเป็นสถานะ "ยกเลิก"
+          : item
+      ),
+      isLoading: false
+    }));
+    
     setLoading(false);
+    console.log('✅ Store: Cancellation completed');
     
-    return updatedItem;
+    return result;
   } catch (error: any) {
     set({ isLoading: false });
     setLoading(false);
-    setError(error.message || 'Failed to confirm booking');
-    console.error('Error confirming booking:', error);
+    setError(error.message || 'Failed to cancel booking');
+    console.error('❌ Store: Error cancelling booking:', error);
     throw error;
   }
 },
